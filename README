@@ -1,0 +1,73 @@
+This package includes:
+
+* FTLCDC200 driver
+
+Usage:
+
+* put the following code in your platform-dpendent initialization sequence.
+------------------------>8-------------------------->8------------------------
+static struct resource ftlcdc200_resources[] = {
+	{
+		.start	= LCDC_FTLCDC200_0_PA_BASE,
+		.end	= LCDC_FTLCDC200_0_PA_LIMIT,
+		.flags	= IORESOURCE_MEM,
+	}, {
+		.start	= LCDC_FTLCDC200_0_IRQ0,
+		.end	= LCDC_FTLCDC200_0_IRQ0,
+		.flags	= IORESOURCE_IRQ,
+	},
+};
+
+static struct platform_device ftlcdc200_device = {
+	.name		= "ftlcdc200",
+	.id		= 0,
+	.num_resources	= ARRAY_SIZE(ftlcdc200_resources),
+	.resource	= ftlcdc200_resources,
+};
+
+platform_device_register(&ftlcdc200_device);
+------------------------>8-------------------------->8------------------------
+
+* make sure the following config options are set
+
+CONFIG_FB=y
+CONFIG_FB_CFB_FILLRECT=y
+CONFIG_FB_CFB_COPYAREA=y
+CONFIG_FB_CFB_IMAGEBLIT=y
+
+(1) insert modules
+
+$ insmod ftlcdc200.ko
+
+(2) find out the dynamically create major/minor number of fb0 device file
+
+$ cat /sys/class/graphics/fb0/dev
+29:0
+
+(3) create device files
+
+$ mknod /dev/fb0 c 29 0
+
+******************************************************************************
+fbcon (framebuffer console) HOWTO:
+
+(1) make sure the following config options are set
+
+* virtual terminal
+
+CONFIG_VT=y
+CONFIG_VT_CONSOLE=y
+
+* framebuffer console
+
+CONFIG_FRAMEBUFFER_CONSOLE=y
+
+* boot logo
+
+CONFIG_LOGO=y
+CONFIG_LOGO_LINUX_CLUT224=y
+
+(2) add framebuffer console to kernel command line (you can use it with serial console)
+
+console=tty0
+
