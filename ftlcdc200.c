@@ -192,12 +192,12 @@ static irqreturn_t ftlcdc200_interrupt(int irq, void *dev_id)
 
 	if (status & FTLCDC200_INT_NEXT_BASE) {
 		if (printk_ratelimit())
-			dev_alert(info->device, "frame base updated\n");
+			dev_dbg(info->device, "frame base updated\n");
 	}
 
 	if (status & FTLCDC200_INT_VSTATUS) {
 		if (printk_ratelimit())
-			dev_alert(info->device, "vertical duration reached \n");
+			dev_dbg(info->device, "vertical duration reached \n");
 
 	}
 
@@ -259,25 +259,25 @@ static int ftlcdc200_check_var(struct fb_var_screeninfo *var,
 
 	clk_value_khz = LC_CLK / 1000;
 
-	dev_alert(dev, "%s:\n", __func__);
+	dev_dbg(dev, "%s:\n", __func__);
 
 	if (var->pixclock == 0) {
 		dev_err(dev, "pixclock not specified\n");
 		return -EINVAL;
 	}
 
-	dev_alert(dev, "  resolution: %ux%u (%ux%u virtual)\n",
+	dev_dbg(dev, "  resolution: %ux%u (%ux%u virtual)\n",
 		info->var.xres, info->var.yres,
 		info->var.xres_virtual, info->var.yres_virtual);
-	dev_alert(dev, "  pixclk:       %lu KHz\n", PICOS2KHZ(var->pixclock));
-	dev_alert(dev, "  bpp:          %u\n", var->bits_per_pixel);
-	dev_alert(dev, "  clk:          %lu KHz\n", clk_value_khz);
-	dev_alert(dev, "  left  margin: %u\n", var->left_margin);
-	dev_alert(dev, "  right margin: %u\n", var->right_margin);
-	dev_alert(dev, "  upper margin: %u\n", var->upper_margin);
-	dev_alert(dev, "  lower margin: %u\n", var->lower_margin);
-	dev_alert(dev, "  hsync:        %u\n", var->hsync_len);
-	dev_alert(dev, "  vsync:        %u\n", var->vsync_len);
+	dev_dbg(dev, "  pixclk:       %lu KHz\n", PICOS2KHZ(var->pixclock));
+	dev_dbg(dev, "  bpp:          %u\n", var->bits_per_pixel);
+	dev_dbg(dev, "  clk:          %lu KHz\n", clk_value_khz);
+	dev_dbg(dev, "  left  margin: %u\n", var->left_margin);
+	dev_dbg(dev, "  right margin: %u\n", var->right_margin);
+	dev_dbg(dev, "  upper margin: %u\n", var->upper_margin);
+	dev_dbg(dev, "  lower margin: %u\n", var->lower_margin);
+	dev_dbg(dev, "  hsync:        %u\n", var->hsync_len);
+	dev_dbg(dev, "  vsync:        %u\n", var->vsync_len);
 
 	if (PICOS2KHZ(var->pixclock) * DIV_ROUND_UP(var->bits_per_pixel, 8)
 			> clk_value_khz) {
@@ -382,8 +382,8 @@ static int ftlcdc200_set_par(struct fb_info *info)
 	unsigned int divno;
 	unsigned int reg;
 
-	dev_alert(info->device, "%s:\n", __func__);
-	dev_alert(info->device, "  resolution:     %ux%u (%ux%u virtual)\n",
+	dev_dbg(info->device, "%s:\n", __func__);
+	dev_dbg(info->device, "  resolution:     %ux%u (%ux%u virtual)\n",
 		info->var.xres, info->var.yres,
 		info->var.xres_virtual, info->var.yres_virtual);
 
@@ -415,10 +415,10 @@ static int ftlcdc200_set_par(struct fb_info *info)
 
 	clk_value_khz = DIV_ROUND_UP(clk_value_khz, divno);
 	info->var.pixclock = KHZ2PICOS(clk_value_khz);
-	dev_alert(info->device, "  updated pixclk: %lu KHz (divno = %d)\n",
+	dev_dbg(info->device, "  updated pixclk: %lu KHz (divno = %d)\n",
 		clk_value_khz, divno - 1);
 
-	dev_alert(info->device, "  frame rate:     %lu Hz\n",
+	dev_dbg(info->device, "  frame rate:     %lu Hz\n",
 		clk_value_khz * 1000
 		/ (info->var.xres + info->var.left_margin
 			+ info->var.right_margin + info->var.hsync_len)
@@ -434,7 +434,7 @@ static int ftlcdc200_set_par(struct fb_info *info)
 	if ((info->var.sync & FB_SYNC_VERT_HIGH_ACT) == 0)
 		reg |= FTLCDC200_POLARITY_IVS;
 
-	dev_alert(info->device, "  [POLARITY]   = %08x\n", reg);
+	dev_dbg(info->device, "  [POLARITY]   = %08x\n", reg);
 	iowrite32(reg, ftlcdc200->base + FTLCDC200_OFFSET_POLARITY);
 
 	/*
@@ -445,7 +445,7 @@ static int ftlcdc200_set_par(struct fb_info *info)
 	reg |= FTLCDC200_HTIMING_HFP(info->var.right_margin - 1);
 	reg |= FTLCDC200_HTIMING_HBP(info->var.left_margin - 1);
 
-	dev_alert(info->device, "  [HTIMING]    = %08x\n", reg);
+	dev_dbg(info->device, "  [HTIMING]    = %08x\n", reg);
 	iowrite32(reg, ftlcdc200->base + FTLCDC200_OFFSET_HTIMING);
 
 	/*
@@ -455,12 +455,12 @@ static int ftlcdc200_set_par(struct fb_info *info)
 	reg |= FTLCDC200_VTIMING0_VW(info->var.vsync_len - 1);
 	reg |= FTLCDC200_VTIMING0_VFP(info->var.lower_margin);
 
-	dev_alert(info->device, "  [VTIMING0]   = %08x\n", reg);
+	dev_dbg(info->device, "  [VTIMING0]   = %08x\n", reg);
 	iowrite32(reg, ftlcdc200->base + FTLCDC200_OFFSET_VTIMING0);
 
 	reg = FTLCDC200_VTIMING1_VBP(info->var.upper_margin);
 
-	dev_alert(info->device, "  [VTIMING1]   = %08x\n", reg);
+	dev_dbg(info->device, "  [VTIMING1]   = %08x\n", reg);
 	iowrite32(reg, ftlcdc200->base + FTLCDC200_OFFSET_VTIMING1);
 
 	/*
@@ -501,7 +501,7 @@ static int ftlcdc200_set_par(struct fb_info *info)
 			break;
 	}
 
-	dev_alert(info->device, "  [PIXEL]      = %08x\n", reg);
+	dev_dbg(info->device, "  [PIXEL]      = %08x\n", reg);
 	iowrite32(reg, ftlcdc200->base + FTLCDC200_OFFSET_PIXEL);
 
 	/*
@@ -512,7 +512,7 @@ static int ftlcdc200_set_par(struct fb_info *info)
 	reg |= FTLCDC200_SERIAL_SERIAL;
 #endif
 
-	dev_alert(info->device, "  [SERIAL]     = %08x\n", reg);
+	dev_dbg(info->device, "  [SERIAL]     = %08x\n", reg);
 	iowrite32(reg, ftlcdc200->base + FTLCDC200_OFFSET_SERIAL);
 
 	/*
@@ -521,7 +521,7 @@ static int ftlcdc200_set_par(struct fb_info *info)
 	reg = FTLCDC200_CTRL_ENABLE
 	    | FTLCDC200_CTRL_LCD;
 
-	dev_alert(info->device, "  [CTRL]       = %08x\n", reg);
+	dev_dbg(info->device, "  [CTRL]       = %08x\n", reg);
 	iowrite32(reg, ftlcdc200->base + FTLCDC200_OFFSET_CTRL);
 
 	return 0;
@@ -625,13 +625,13 @@ static int ftlcdc200_pan_display(struct fb_var_screeninfo *var,
 	unsigned long dma_addr;
 	unsigned int value;
 
-	dev_alert(info->device, "%s\n", __func__);
+	dev_dbg(info->device, "%s\n", __func__);
 
 	dma_addr = info->fix.smem_start + var->yoffset * info->fix.line_length;
 	value = FTLCDC200_FRAME_BASE(dma_addr);
 
 	iowrite32(value, ftlcdc200->base + FTLCDC200_OFFSET_FRAME_BASE0);
-	dev_alert(info->device, "  [FRAME BASE] = %08x\n", value);
+	dev_dbg(info->device, "  [FRAME BASE] = %08x\n", value);
 	return 0;
 }
 
@@ -661,7 +661,7 @@ static int __init ftlcdc200_probe(struct platform_device *pdev)
 	int irq;
 	int ret;
 
-	dev_alert(dev, "%s\n", __func__);
+	dev_dbg(dev, "%s\n", __func__);
 	res = platform_get_resource(pdev, IORESOURCE_MEM, 0);
 	if (!res) {
 		return -ENXIO;
@@ -758,7 +758,7 @@ static int __init ftlcdc200_probe(struct platform_device *pdev)
 	}
 
 	memset(info->screen_base, 0, info->fix.smem_len);
-	dev_alert(dev, "  frame buffer: vitual = %p, physical = %08lx\n",
+	dev_dbg(dev, "  frame buffer: vitual = %p, physical = %08lx\n",
 		info->screen_base, info->fix.smem_start);
 
 	/*
