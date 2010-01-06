@@ -725,25 +725,6 @@ static int __init ftlcdc200_probe(struct platform_device *pdev)
 	ftlcdc200 = info->par;
 
 	/*
-	 * Set up flags to indicate what sort of acceleration your
-	 * driver can provide (pan/wrap/copyarea/etc.) and whether it
-	 * is a module -- see FBINFO_* in include/linux/fb.h
-	 */
-	info->flags = FBINFO_DEFAULT;
-
-	info->fbops = &ftlcdc200_fb_ops;
-	info->pseudo_palette = ftlcdc200->pseudo_palette;
-
-	/*
-	 * Allocate colormap
-	 */
-	ret = fb_alloc_cmap(&info->cmap, 256, 0);
-	if (ret < 0) {
-		dev_err(dev, "Failed to allocate colormap\n");
-		goto err_alloc_cmap;
-	}
-
-	/*
 	 * Map io memory
 	 */
 	ftlcdc200->res = request_mem_region(res->start, res->end - res->start,
@@ -765,18 +746,6 @@ static int __init ftlcdc200_probe(struct platform_device *pdev)
 	 * Make sure LCD controller is disabled
 	 */
 	iowrite32(0, ftlcdc200->base + FTLCDC200_OFFSET_CTRL);
-
-	/*
-	 * Copy default parameters
-	 */
-	info->fix = ftlcdc200_default_fix;
-	info->var = ftlcdc200_default_var;
-
-	ret = ftlcdc200_check_var(&info->var, info);
-	if (ret < 0) {
-		dev_err(dev, "ftlcdc200_check_var() failed\n");
-		goto err_check_var;
-	}
 
 	/*
 	 * Register interrupt handler
@@ -807,6 +776,37 @@ static int __init ftlcdc200_probe(struct platform_device *pdev)
 #endif
 
 	/*
+	 * Set up flags to indicate what sort of acceleration your
+	 * driver can provide (pan/wrap/copyarea/etc.) and whether it
+	 * is a module -- see FBINFO_* in include/linux/fb.h
+	 */
+	info->flags = FBINFO_DEFAULT;
+
+	info->fbops = &ftlcdc200_fb_ops;
+	info->pseudo_palette = ftlcdc200->pseudo_palette;
+
+	/*
+	 * Allocate colormap
+	 */
+	ret = fb_alloc_cmap(&info->cmap, 256, 0);
+	if (ret < 0) {
+		dev_err(dev, "Failed to allocate colormap\n");
+		goto err_alloc_cmap;
+	}
+
+	/*
+	 * Copy default parameters
+	 */
+	info->fix = ftlcdc200_default_fix;
+	info->var = ftlcdc200_default_var;
+
+	ret = ftlcdc200_check_var(&info->var, info);
+	if (ret < 0) {
+		dev_err(dev, "ftlcdc200_check_var() failed\n");
+		goto err_check_var;
+	}
+
+	/*
 	 * Does a call to fb_set_par() before register_framebuffer needed?  This
 	 * will depend on you and the hardware.  If you are sure that your driver
 	 * is the only device in the system, a call to fb_set_par() is safe.
@@ -828,21 +828,26 @@ static int __init ftlcdc200_probe(struct platform_device *pdev)
 
 	dev_info(dev, "fb%d: %s frame buffer device\n", info->node,
 		info->fix.id);
+
 	return 0;
 
 err_register_info:
 	/* disable LCD HW */
 	iowrite32(0, ftlcdc200->base + FTLCDC200_OFFSET_CTRL);
+err_check_var:
+	if (info->screen_base) {
+		dma_free_writecombine(NULL, info->fix.smem_len, info->screen_base,
+				(dma_addr_t )info->fix.smem_start);
+	}
+
+	fb_dealloc_cmap(&info->cmap);
+err_alloc_cmap:
+	iowrite32(0, ftlcdc200->base + FTLCDC200_OFFSET_INT_ENABLE);
 	free_irq(irq, info);
 err_req_irq:
-	dma_free_writecombine(NULL, info->fix.smem_len, info->screen_base,
-				(dma_addr_t )info->fix.smem_start);
-err_check_var:
 	iounmap(ftlcdc200->base);
 err_ioremap:
 err_req_mem_region:
-	fb_dealloc_cmap(&info->cmap);
-err_alloc_cmap:
 	platform_set_drvdata(pdev, NULL);
 	framebuffer_release(info);
 err_alloc_info:
@@ -864,14 +869,12 @@ static int __exit ftlcdc200_remove(struct platform_device *pdev)
 	iowrite32(0, ftlcdc200->base + FTLCDC200_OFFSET_CTRL);
 
 	unregister_framebuffer(info);
-	free_irq(ftlcdc200->irq, info);
-
 	dma_free_writecombine(NULL, info->fix.smem_len, info->screen_base,
 				(dma_addr_t )info->fix.smem_start);
 
-	iounmap(ftlcdc200->base);
-
 	fb_dealloc_cmap(&info->cmap);
+	free_irq(ftlcdc200->irq, info);
+	iounmap(ftlcdc200->base);
 	platform_set_drvdata(pdev, NULL);
 	framebuffer_release(info);
 	release_resource(ftlcdc200->res);
