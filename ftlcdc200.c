@@ -291,6 +291,7 @@ static int ftlcdc200_grow_framebuffer(struct fb_info *info,
 	return 0;
 }
 
+#if CONFIG_FTLCDC200_NR_FB > 1
 /*
  * device attribute functions borrowed from drivers/base/core.c
  */
@@ -322,6 +323,7 @@ static void device_remove_attributes(struct device *dev,
 		for (i = 0; attr_name(attrs[i]); i++)
 			device_remove_file(dev, &attrs[i]);
 }
+#endif
 
 /******************************************************************************
  * internal functions - gamma
@@ -1094,15 +1096,13 @@ static ssize_t ftlcdc200_store_blend2(struct device *device,
 
 	return count;
 }
-#endif
 
 static struct device_attribute ftlcdc200_device_attrs[] = {
-#if CONFIG_FTLCDC200_NR_FB > 1
 	__ATTR(pip, S_IRUGO|S_IWUSR, ftlcdc200_show_pip, ftlcdc200_store_pip),
 	__ATTR(blend1, S_IRUGO|S_IWUSR, ftlcdc200_show_blend1, ftlcdc200_store_blend1),
 	__ATTR(blend2, S_IRUGO|S_IWUSR, ftlcdc200_show_blend2, ftlcdc200_store_blend2),
-#endif
 };
+#endif
 
 /******************************************************************************
  * struct device_attribute functions
@@ -1444,6 +1444,7 @@ static int __init ftlcdc200_probe(struct platform_device *pdev)
 	iowrite32(0xf, ftlcdc200->base + 0x54);
 #endif
 
+#if CONFIG_FTLCDC200_NR_FB > 1
 	/*
 	 * create files in /sys/devices/platform/ftlcdc200.x/
 	 */
@@ -1452,6 +1453,7 @@ static int __init ftlcdc200_probe(struct platform_device *pdev)
 		dev_err(dev, "Failed to create device files\n");
 		goto err_sysfs;
 	}
+#endif
 
 	for (i = 0; i < CONFIG_FTLCDC200_NR_FB; i++) {
 		ret = ftlcdc200_alloc_ftlcdc200fb(ftlcdc200, i);
@@ -1470,7 +1472,9 @@ err_alloc_ftlcdc200fb:
 	while (--i >= 0) {
 		ftlcdc200_free_ftlcdc200fb(ftlcdc200->fb[i], i);
 	}
+#if CONFIG_FTLCDC200_NR_FB > 1
 err_sysfs:
+#endif
 	free_irq(irq, ftlcdc200);
 err_req_irq:
 	iounmap(ftlcdc200->base);
@@ -1498,8 +1502,9 @@ static int __exit ftlcdc200_remove(struct platform_device *pdev)
 		ftlcdc200_free_ftlcdc200fb(ftlcdc200->fb[i], i);
 	}
 
+#if CONFIG_FTLCDC200_NR_FB > 1
 	device_remove_attributes(ftlcdc200->dev, ftlcdc200_device_attrs);
-
+#endif
 	free_irq(ftlcdc200->irq, ftlcdc200);
 	iounmap(ftlcdc200->base);
 	platform_set_drvdata(pdev, NULL);
