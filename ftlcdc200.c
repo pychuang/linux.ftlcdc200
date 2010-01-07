@@ -148,6 +148,7 @@ static void ftlcdc200_fb1_set_frame_base(struct ftlcdc200 *ftlcdc200,
 	iowrite32(value, ftlcdc200->base + FTLCDC200_OFFSET_FRAME_BASE1);
 	dev_dbg(ftlcdc200->dev, "  [FRAME BASE] = %08x\n", value);
 }
+#endif
 
 #if CONFIG_FTLCDC200_NR_FB > 2
 static void ftlcdc200_fb2_set_frame_base(struct ftlcdc200 *ftlcdc200,
@@ -156,6 +157,7 @@ static void ftlcdc200_fb2_set_frame_base(struct ftlcdc200 *ftlcdc200,
 	iowrite32(value, ftlcdc200->base + FTLCDC200_OFFSET_FRAME_BASE2);
 	dev_dbg(ftlcdc200->dev, "  [FRAME BASE] = %08x\n", value);
 }
+#endif
 
 #if CONFIG_FTLCDC200_NR_FB > 3
 static void ftlcdc200_fb3_set_frame_base(struct ftlcdc200 *ftlcdc200,
@@ -164,8 +166,6 @@ static void ftlcdc200_fb3_set_frame_base(struct ftlcdc200 *ftlcdc200,
 	iowrite32(value, ftlcdc200->base + FTLCDC200_OFFSET_FRAME_BASE3);
 	dev_dbg(ftlcdc200->dev, "  [FRAME BASE] = %08x\n", value);
 }
-#endif
-#endif
 #endif
 
 #if CONFIG_FTLCDC200_NR_FB > 1
@@ -190,6 +190,7 @@ static void ftlcdc200_fb1_get_position(struct ftlcdc200 *ftlcdc200,
 	*x = FTLCDC200_PIP_POS_EXTRACT_H(reg);
 	*y = FTLCDC200_PIP_POS_EXTRACT_V(reg);
 }
+#endif
 
 #if CONFIG_FTLCDC200_NR_FB > 2
 static void ftlcdc200_fb2_set_position(struct ftlcdc200 *ftlcdc200,
@@ -214,7 +215,6 @@ static void ftlcdc200_fb2_get_position(struct ftlcdc200 *ftlcdc200,
 	*y = FTLCDC200_PIP_POS_EXTRACT_V(reg);
 }
 #endif
-#endif
 
 #if CONFIG_FTLCDC200_NR_FB > 1
 static void ftlcdc200_fb1_set_dimension(struct ftlcdc200 *ftlcdc200,
@@ -226,6 +226,7 @@ static void ftlcdc200_fb1_set_dimension(struct ftlcdc200 *ftlcdc200,
 	dev_dbg(ftlcdc200->dev, "  [PIP DIM1]   = %08x\n", value);
 	iowrite32(value, ftlcdc200->base + FTLCDC200_OFFSET_PIP_DIM1);
 }
+#endif
 
 #if CONFIG_FTLCDC200_NR_FB > 2
 static void ftlcdc200_fb2_set_dimension(struct ftlcdc200 *ftlcdc200,
@@ -237,7 +238,6 @@ static void ftlcdc200_fb2_set_dimension(struct ftlcdc200 *ftlcdc200,
 	dev_dbg(ftlcdc200->dev, "  [PIP DIM2]   = %08x\n", value);
 	iowrite32(value, ftlcdc200->base + FTLCDC200_OFFSET_PIP_DIM2);
 }
-#endif
 #endif
 
 static int ftlcdc200_grow_framebuffer(struct fb_info *info,
@@ -1202,6 +1202,8 @@ static int __init ftlcdc200_alloc_ftlcdc200fb(struct ftlcdc200 *ftlcdc200, int n
 
 		ftlcdc200fb->set_position(ftlcdc200, 0, 0);
 		break;
+#endif
+
 #if CONFIG_FTLCDC200_NR_FB > 2
 	case 2:
 		info->fbops = &ftlcdc200_fb1_ops;
@@ -1212,14 +1214,13 @@ static int __init ftlcdc200_alloc_ftlcdc200fb(struct ftlcdc200 *ftlcdc200, int n
 
 		ftlcdc200fb->set_position(ftlcdc200, 0, 0);
 		break;
+#endif
 
 #if CONFIG_FTLCDC200_NR_FB > 3
 	case 3:
 //		info->fbops = &ftlcdc200_fb3_ops;
 		ftlcdc200fb->set_frame_base = ftlcdc200_fb3_set_frame_base;
 		break;
-#endif
-#endif
 #endif
 	default:
 		BUG();
@@ -1286,12 +1287,13 @@ static int __init ftlcdc200_alloc_ftlcdc200fb(struct ftlcdc200 *ftlcdc200, int n
 		}
 
 		break;
+#endif
 
 #if CONFIG_FTLCDC200_NR_FB > 3
 	case 3:
 		break;
 #endif
-#endif
+
 	default:
 		BUG();
 	}
@@ -1337,12 +1339,13 @@ static void ftlcdc200_free_ftlcdc200fb(struct ftlcdc200fb *ftlcdc200fb, int nr)
 		device_remove_attributes(info->dev, ftlcdc200_fb1_device_attrs);
 
 		break;
+#endif
 
 #if CONFIG_FTLCDC200_NR_FB > 3
 	case 3:
 		break;
 #endif
-#endif
+
 	default:
 		BUG();
 	}
