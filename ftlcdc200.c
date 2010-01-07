@@ -61,6 +61,7 @@ struct ftlcdc200fb {
 	struct ftlcdc200 *ftlcdc200;
 	struct fb_info *info;
 	void (*set_frame_base)(struct ftlcdc200 *ftlcdc200, unsigned int value);
+	void (*set_dimension)(struct ftlcdc200 *ftlcdc200, int x, int y);
 	void (*set_position)(struct ftlcdc200 *ftlcdc200, int x, int y);
 	void (*get_position)(struct ftlcdc200 *ftlcdc200, int *x, int *y);
 
@@ -211,6 +212,30 @@ static void ftlcdc200_fb2_get_position(struct ftlcdc200 *ftlcdc200,
 
 	*x = FTLCDC200_PIP_POS_EXTRACT_H(reg);
 	*y = FTLCDC200_PIP_POS_EXTRACT_V(reg);
+}
+#endif
+#endif
+
+#if CONFIG_FTLCDC200_NR_FB > 1
+static void ftlcdc200_fb1_set_dimension(struct ftlcdc200 *ftlcdc200,
+		int x, int y)
+{
+	unsigned int value;
+
+	value = FTLCDC200_PIP_DIM_H(x) | FTLCDC200_PIP_DIM_V(y);
+	dev_dbg(ftlcdc200->dev, "  [PIP DIM1]   = %08x\n", value);
+	iowrite32(value, ftlcdc200->base + FTLCDC200_OFFSET_PIP_DIM1);
+}
+
+#if CONFIG_FTLCDC200_NR_FB > 2
+static void ftlcdc200_fb2_set_dimension(struct ftlcdc200 *ftlcdc200,
+		int x, int y)
+{
+	unsigned int value;
+
+	value = FTLCDC200_PIP_DIM_H(x) | FTLCDC200_PIP_DIM_V(y);
+	dev_dbg(ftlcdc200->dev, "  [PIP DIM2]   = %08x\n", value);
+	iowrite32(value, ftlcdc200->base + FTLCDC200_OFFSET_PIP_DIM2);
 }
 #endif
 #endif
@@ -772,7 +797,6 @@ static int ftlcdc200_fb1_set_par(struct fb_info *info)
 {
 	struct ftlcdc200fb *ftlcdc200fb = info->par;
 	struct ftlcdc200 *ftlcdc200 = ftlcdc200fb->ftlcdc200;
-	unsigned int reg;
 
 	dev_dbg(info->device, "fb%d: %s:\n", info->node, __func__);
 	dev_dbg(info->device, "  resolution:     %ux%u (%ux%u virtual)\n",
@@ -795,9 +819,7 @@ static int ftlcdc200_fb1_set_par(struct fb_info *info)
 	/*
 	 * Dimension
 	 */
-	reg = FTLCDC200_PIP_DIM_H(info->var.xres) | FTLCDC200_PIP_DIM_V(info->var.yres);
-	dev_dbg(ftlcdc200->dev, "  [PIP DIM1]   = %08x\n", reg);
-	iowrite32(reg, ftlcdc200->base + FTLCDC200_OFFSET_PIP_DIM1);
+	ftlcdc200fb->set_dimension(ftlcdc200, info->var.xres, info->var.yres);
 
 	return 0;
 }
@@ -1170,6 +1192,7 @@ static int __init ftlcdc200_alloc_ftlcdc200fb(struct ftlcdc200 *ftlcdc200, int n
 	case 1:
 		info->fbops = &ftlcdc200_fb1_ops;
 		ftlcdc200fb->set_frame_base = ftlcdc200_fb1_set_frame_base;
+		ftlcdc200fb->set_dimension = ftlcdc200_fb1_set_dimension;
 		ftlcdc200fb->set_position = ftlcdc200_fb1_set_position;
 		ftlcdc200fb->get_position = ftlcdc200_fb1_get_position;
 
@@ -1179,6 +1202,7 @@ static int __init ftlcdc200_alloc_ftlcdc200fb(struct ftlcdc200 *ftlcdc200, int n
 	case 2:
 		info->fbops = &ftlcdc200_fb1_ops;
 		ftlcdc200fb->set_frame_base = ftlcdc200_fb2_set_frame_base;
+		ftlcdc200fb->set_dimension = ftlcdc200_fb2_set_dimension;
 		ftlcdc200fb->set_position = ftlcdc200_fb2_set_position;
 		ftlcdc200fb->get_position = ftlcdc200_fb2_get_position;
 
