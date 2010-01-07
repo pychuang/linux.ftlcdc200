@@ -40,7 +40,7 @@
 #define CONFIG_AUO_A036QN01_CPLD
 #undef CONFIG_TPO_TD070WGEC2
 
-#define CONFIG_FTLCDC200_NR_FB	3
+#define CONFIG_FTLCDC200_NR_FB	4
 
 /* 
  * This structure defines the hardware state of the graphics card. Normally
@@ -827,6 +827,31 @@ static int ftlcdc200_fb1_set_par(struct fb_info *info)
 }
 #endif
 
+#if CONFIG_FTLCDC200_NR_FB > 3
+static int ftlcdc200_fb3_set_par(struct fb_info *info)
+{
+	dev_dbg(info->device, "fb%d: %s:\n", info->node, __func__);
+	dev_dbg(info->device, "  resolution:     %ux%u (%ux%u virtual)\n",
+		info->var.xres, info->var.yres,
+		info->var.xres_virtual, info->var.yres_virtual);
+
+	/*
+	 * Fill uninitialized fields of struct fb_fix_screeninfo
+	 */
+	if (info->var.bits_per_pixel == 1)
+		info->fix.visual = FB_VISUAL_MONO01;
+	else if (info->var.bits_per_pixel <= 8)
+		info->fix.visual = FB_VISUAL_PSEUDOCOLOR;
+	else
+		info->fix.visual = FB_VISUAL_TRUECOLOR;
+
+	info->fix.line_length = info->var.xres_virtual *
+				DIV_ROUND_UP(info->var.bits_per_pixel, 8);
+
+	return 0;
+}
+#endif
+
 /**
  * fb_setcolreg - Optional function. Sets a color register.
  * @regno: Which register in the CLUT we are programming 
@@ -954,6 +979,21 @@ static struct fb_ops ftlcdc200_fb1_ops = {
 	.owner		= THIS_MODULE,
 	.fb_check_var	= ftlcdc200_fb1_check_var,
 	.fb_set_par	= ftlcdc200_fb1_set_par,
+	.fb_setcolreg	= ftlcdc200_fb_setcolreg,
+	.fb_pan_display	= ftlcdc200_fb_pan_display,
+
+	/* These are generic software based fb functions */
+	.fb_fillrect	= cfb_fillrect,
+	.fb_copyarea	= cfb_copyarea,
+	.fb_imageblit	= cfb_imageblit,
+};
+#endif
+
+#if CONFIG_FTLCDC200_NR_FB > 3
+static struct fb_ops ftlcdc200_fb3_ops = {
+	.owner		= THIS_MODULE,
+	.fb_check_var	= ftlcdc200_fb1_check_var,
+	.fb_set_par	= ftlcdc200_fb3_set_par,
 	.fb_setcolreg	= ftlcdc200_fb_setcolreg,
 	.fb_pan_display	= ftlcdc200_fb_pan_display,
 
@@ -1097,10 +1137,58 @@ static ssize_t ftlcdc200_store_blend2(struct device *device,
 	return count;
 }
 
+#if CONFIG_FTLCDC200_NR_FB > 3
+static ssize_t ftlcdc200_show_pop(struct device *device,
+		struct device_attribute *attr, char *buf)
+{
+	struct ftlcdc200 *ftlcdc200 = dev_get_drvdata(device);
+	unsigned int reg;
+	int pop;
+
+	dev_dbg(ftlcdc200->dev, "%s\n", __func__);
+	reg = ioread32(ftlcdc200->base + FTLCDC200_OFFSET_CTRL);
+
+	if (reg & FTLCDC200_CTRL_POP) {
+		pop = 1;
+	} else {
+		pop = 0;
+	}
+
+	return snprintf(buf, PAGE_SIZE, "%d\n", pop);
+}
+
+static ssize_t ftlcdc200_store_pop(struct device *device,
+		struct device_attribute *attr, const char *buf, size_t count)
+{
+	struct ftlcdc200 *ftlcdc200 = dev_get_drvdata(device);
+	char **last = NULL;
+	unsigned int reg;
+	int pop;
+
+	dev_dbg(ftlcdc200->dev, "%s\n", __func__);
+	pop = simple_strtoul(buf, last, 0);
+	reg = ioread32(ftlcdc200->base + FTLCDC200_OFFSET_CTRL);
+
+	if (pop == 0) {
+		reg &= ~FTLCDC200_CTRL_POP;
+	} else {
+		reg |= FTLCDC200_CTRL_POP;
+	}
+
+	dev_dbg(ftlcdc200->dev, "  [CTRL]       = %08x\n", reg);
+	iowrite32(reg, ftlcdc200->base + FTLCDC200_OFFSET_CTRL);
+
+	return count;
+}
+#endif
+
 static struct device_attribute ftlcdc200_device_attrs[] = {
 	__ATTR(pip, S_IRUGO|S_IWUSR, ftlcdc200_show_pip, ftlcdc200_store_pip),
 	__ATTR(blend1, S_IRUGO|S_IWUSR, ftlcdc200_show_blend1, ftlcdc200_store_blend1),
 	__ATTR(blend2, S_IRUGO|S_IWUSR, ftlcdc200_show_blend2, ftlcdc200_store_blend2),
+#if CONFIG_FTLCDC200_NR_FB > 3
+	__ATTR(pop, S_IRUGO|S_IWUSR, ftlcdc200_show_pop, ftlcdc200_store_pop),
+#endif
 };
 #endif
 
@@ -1218,7 +1306,7 @@ static int __init ftlcdc200_alloc_ftlcdc200fb(struct ftlcdc200 *ftlcdc200, int n
 
 #if CONFIG_FTLCDC200_NR_FB > 3
 	case 3:
-//		info->fbops = &ftlcdc200_fb3_ops;
+		info->fbops = &ftlcdc200_fb3_ops;
 		ftlcdc200fb->set_frame_base = ftlcdc200_fb3_set_frame_base;
 		break;
 #endif
