@@ -968,6 +968,7 @@ static struct fb_ops ftlcdc200_fb1_ops = {
  * These functions handles files in
  *	/sys/devices/platform/ftlcdc200.x/
  *****************************************************************************/
+#if CONFIG_FTLCDC200_NR_FB > 1
 static ssize_t ftlcdc200_show_pip(struct device *device,
 		struct device_attribute *attr, char *buf)
 {
@@ -1093,11 +1094,14 @@ static ssize_t ftlcdc200_store_blend2(struct device *device,
 
 	return count;
 }
+#endif
 
 static struct device_attribute ftlcdc200_device_attrs[] = {
+#if CONFIG_FTLCDC200_NR_FB > 1
 	__ATTR(pip, S_IRUGO|S_IWUSR, ftlcdc200_show_pip, ftlcdc200_store_pip),
 	__ATTR(blend1, S_IRUGO|S_IWUSR, ftlcdc200_show_blend1, ftlcdc200_store_blend1),
 	__ATTR(blend2, S_IRUGO|S_IWUSR, ftlcdc200_show_blend2, ftlcdc200_store_blend2),
+#endif
 };
 
 /******************************************************************************
