@@ -37,8 +37,10 @@
 /*
  * Select a panel configuration
  */
-#undef CONFIG_AUO_A036QN01_CPLD
-#define CONFIG_TPO_TD070WGEC2
+#define CONFIG_AUO_A036QN01_CPLD
+#undef CONFIG_TPO_TD070WGEC2
+
+#define CONFIG_FTLCDC200_NR_FB	3
 
 /* 
  * This structure defines the hardware state of the graphics card. Normally
@@ -49,8 +51,18 @@
  */
 struct ftlcdc200 {
 	struct resource *res;
+	struct device *dev;
 	void *base;
 	int irq;
+	struct ftlcdc200fb *fb[CONFIG_FTLCDC200_NR_FB];
+};
+
+struct ftlcdc200fb {
+	struct ftlcdc200 *ftlcdc200;
+	struct fb_info *info;
+	void (*set_frame_base)(struct ftlcdc200 *ftlcdc200, unsigned int value);
+	void (*set_position)(struct ftlcdc200 *ftlcdc200, int x, int y);
+	void (*get_position)(struct ftlcdc200 *ftlcdc200, int *x, int *y);
 
 	/*
 	 * This pseudo_palette is used _only_ by fbcon, thus
@@ -121,11 +133,94 @@ static struct fb_var_screeninfo ftlcdc200_default_var __devinitdata = {
 /******************************************************************************
  * internal functions
  *****************************************************************************/
+static void ftlcdc200_fb0_set_frame_base(struct ftlcdc200 *ftlcdc200,
+		unsigned int value)
+{
+	iowrite32(value, ftlcdc200->base + FTLCDC200_OFFSET_FRAME_BASE0);
+	dev_dbg(ftlcdc200->dev, "  [FRAME BASE] = %08x\n", value);
+}
+
+#if CONFIG_FTLCDC200_NR_FB > 1
+static void ftlcdc200_fb1_set_frame_base(struct ftlcdc200 *ftlcdc200,
+		unsigned int value)
+{
+	iowrite32(value, ftlcdc200->base + FTLCDC200_OFFSET_FRAME_BASE1);
+	dev_dbg(ftlcdc200->dev, "  [FRAME BASE] = %08x\n", value);
+}
+
+#if CONFIG_FTLCDC200_NR_FB > 2
+static void ftlcdc200_fb2_set_frame_base(struct ftlcdc200 *ftlcdc200,
+		unsigned int value)
+{
+	iowrite32(value, ftlcdc200->base + FTLCDC200_OFFSET_FRAME_BASE2);
+	dev_dbg(ftlcdc200->dev, "  [FRAME BASE] = %08x\n", value);
+}
+
+#if CONFIG_FTLCDC200_NR_FB > 3
+static void ftlcdc200_fb3_set_frame_base(struct ftlcdc200 *ftlcdc200,
+		unsigned int value)
+{
+	iowrite32(value, ftlcdc200->base + FTLCDC200_OFFSET_FRAME_BASE3);
+	dev_dbg(ftlcdc200->dev, "  [FRAME BASE] = %08x\n", value);
+}
+#endif
+#endif
+#endif
+
+#if CONFIG_FTLCDC200_NR_FB > 1
+static void ftlcdc200_fb1_set_position(struct ftlcdc200 *ftlcdc200,
+		int x, int y)
+{
+	unsigned int value;
+
+	value = FTLCDC200_PIP_POS_H(x) | FTLCDC200_PIP_POS_V(y);
+	dev_dbg(ftlcdc200->dev, "  [PIP POS1]   = %08x (%d, %d)\n", value, x, y);
+	iowrite32(value, ftlcdc200->base + FTLCDC200_OFFSET_PIP_POS1);
+}
+
+static void ftlcdc200_fb1_get_position(struct ftlcdc200 *ftlcdc200,
+		int *x, int *y)
+{
+	unsigned int reg;
+
+	reg = ioread32(ftlcdc200->base + FTLCDC200_OFFSET_PIP_POS1);
+	dev_dbg(ftlcdc200->dev, "  [PIP POS1]   = %08x\n", reg);
+
+	*x = FTLCDC200_PIP_POS_EXTRACT_H(reg);
+	*y = FTLCDC200_PIP_POS_EXTRACT_V(reg);
+}
+
+#if CONFIG_FTLCDC200_NR_FB > 2
+static void ftlcdc200_fb2_set_position(struct ftlcdc200 *ftlcdc200,
+		int x, int y)
+{
+	unsigned int value;
+
+	value = FTLCDC200_PIP_POS_H(x) | FTLCDC200_PIP_POS_V(y);
+	dev_dbg(ftlcdc200->dev, "  [PIP POS2]   = %08x (%d, %d)\n", value, x, y);
+	iowrite32(value, ftlcdc200->base + FTLCDC200_OFFSET_PIP_POS2);
+}
+
+static void ftlcdc200_fb2_get_position(struct ftlcdc200 *ftlcdc200,
+		int *x, int *y)
+{
+	unsigned int reg;
+
+	reg = ioread32(ftlcdc200->base + FTLCDC200_OFFSET_PIP_POS2);
+	dev_dbg(ftlcdc200->dev, "  [PIP POS2]   = %08x\n", reg);
+
+	*x = FTLCDC200_PIP_POS_EXTRACT_H(reg);
+	*y = FTLCDC200_PIP_POS_EXTRACT_V(reg);
+}
+#endif
+#endif
+
 static int ftlcdc200_grow_framebuffer(struct fb_info *info,
-	struct fb_var_screeninfo *var)
+		struct fb_var_screeninfo *var)
 {
 	struct device *dev = info->device;
-	struct ftlcdc200 *ftlcdc200 = info->par;
+	struct ftlcdc200fb *ftlcdc200fb = info->par;
+	struct ftlcdc200 *ftlcdc200 = ftlcdc200fb->ftlcdc200;
 	unsigned int reg;
 	unsigned long smem_len = (var->xres_virtual * var->yres_virtual
 				 * DIV_ROUND_UP(var->bits_per_pixel, 8));
@@ -154,7 +249,7 @@ static int ftlcdc200_grow_framebuffer(struct fb_info *info,
 		screen_base, smem_start);
 
 	reg = FTLCDC200_FRAME_BASE(smem_start);
-	iowrite32(reg, ftlcdc200->base + FTLCDC200_OFFSET_FRAME_BASE0);
+	ftlcdc200fb->set_frame_base(ftlcdc200, reg);
 
 	/*
 	 * Free current framebuffer (if any)
@@ -171,6 +266,46 @@ static int ftlcdc200_grow_framebuffer(struct fb_info *info,
 	return 0;
 }
 
+/*
+ * device attribute functions borrowed from drivers/base/core.c
+ */
+static int device_add_attributes(struct device *dev,
+				 struct device_attribute *attrs)
+{
+	int error = 0;
+	int i;
+
+	if (attrs) {
+		for (i = 0; attr_name(attrs[i]); i++) {
+			error = device_create_file(dev, &attrs[i]);
+			if (error)
+				break;
+		}
+		if (error)
+			while (--i >= 0)
+				device_remove_file(dev, &attrs[i]);
+	}
+	return error;
+}
+
+static void device_remove_attributes(struct device *dev,
+				     struct device_attribute *attrs)
+{
+	int i;
+
+	if (attrs)
+		for (i = 0; attr_name(attrs[i]); i++)
+			device_remove_file(dev, &attrs[i]);
+}
+
+/******************************************************************************
+ * internal functions - gamma
+ *
+ * Note the brain-dead hardware behavoirs:
+ *	After reset, hardware does not initialize gamma tables to linear -
+ *	they are just garbages.
+ *	Gamma tables must be programmed while LCD disabled.
+ *****************************************************************************/
 static void ftlcdc200_set_gamma(void *gtbase, unsigned int i, unsigned int val)
 {
 	unsigned int reg;
@@ -204,8 +339,6 @@ static void ftlcdc200_set_gamma_blue(void *base, unsigned int i, unsigned int va
 
 /**
  * ftlcdc200_set_linear_gamma - Setup linear gamma tables
- *
- * Note: gamma tables must be programmed while LCD disabled
  */
 static void ftlcdc200_set_linear_gamma(struct ftlcdc200 *ftlcdc200)
 {
@@ -223,31 +356,30 @@ static void ftlcdc200_set_linear_gamma(struct ftlcdc200 *ftlcdc200)
  *****************************************************************************/
 static irqreturn_t ftlcdc200_interrupt(int irq, void *dev_id)
 {
-	struct fb_info *info = dev_id;
-	struct ftlcdc200 *ftlcdc200 = info->par;
+	struct ftlcdc200 *ftlcdc200 = dev_id;
 	unsigned int status;
 
 	status = ioread32(ftlcdc200->base + FTLCDC200_OFFSET_INT_STATUS);
 
 	if (status & FTLCDC200_INT_UNDERRUN) {
 		if (printk_ratelimit())
-			dev_notice(info->device, "underrun\n");
+			dev_notice(ftlcdc200->dev, "underrun\n");
 	}
 
 	if (status & FTLCDC200_INT_NEXT_BASE) {
 		if (printk_ratelimit())
-			dev_dbg(info->device, "frame base updated\n");
+			dev_dbg(ftlcdc200->dev, "frame base updated\n");
 	}
 
 	if (status & FTLCDC200_INT_VSTATUS) {
 		if (printk_ratelimit())
-			dev_dbg(info->device, "vertical duration reached \n");
+			dev_dbg(ftlcdc200->dev, "vertical duration reached \n");
 
 	}
 
 	if (status & FTLCDC200_INT_BUS_ERROR) {
 		if (printk_ratelimit())
-			dev_err(info->device, "bus error!\n");
+			dev_err(ftlcdc200->dev, "bus error!\n");
 
 	}
 
@@ -260,7 +392,7 @@ static irqreturn_t ftlcdc200_interrupt(int irq, void *dev_id)
  * struct platform_driver functions
  *****************************************************************************/
 /**
- * ftlcdc200_check_var - Validates a var passed in.
+ * fb_check_var - Validates a var passed in.
  * @var: frame buffer variable screen structure
  * @info: frame buffer structure that represents a single frame buffer 
  *
@@ -295,7 +427,7 @@ static irqreturn_t ftlcdc200_interrupt(int irq, void *dev_id)
  *
  * Returns negative errno on error, or zero on success.
  */
-static int ftlcdc200_check_var(struct fb_var_screeninfo *var,
+static int ftlcdc200_fb0_check_var(struct fb_var_screeninfo *var,
 		struct fb_info *info)
 {
 	struct device *dev = info->device;
@@ -304,7 +436,7 @@ static int ftlcdc200_check_var(struct fb_var_screeninfo *var,
 
 	clk_value_khz = LC_CLK / 1000;
 
-	dev_dbg(dev, "%s:\n", __func__);
+	dev_dbg(dev, "fb%d: %s:\n", info->node, __func__);
 
 	if (var->pixclock == 0) {
 		dev_err(dev, "pixclock not specified\n");
@@ -387,8 +519,78 @@ static int ftlcdc200_check_var(struct fb_var_screeninfo *var,
 	return 0;
 }
 
+#if CONFIG_FTLCDC200_NR_FB > 1
+static int ftlcdc200_fb1_check_var(struct fb_var_screeninfo *var,
+		struct fb_info *info)
+{
+	struct device *dev = info->device;
+	struct ftlcdc200fb *ftlcdc200fb = info->par;
+	struct ftlcdc200 *ftlcdc200 = ftlcdc200fb->ftlcdc200;
+	int ret;
+
+	dev_dbg(dev, "fb%d: %s:\n", info->node, __func__);
+	dev_dbg(dev, "  resolution: %ux%u (%ux%u virtual)\n",
+		var->xres, var->yres,
+		var->xres_virtual, var->yres_virtual);
+	dev_dbg(dev, "  bpp:          %u\n", var->bits_per_pixel);
+
+	/*
+	 * The resolution of sub image should not be larger than the physical
+	 * resolution (the resolution of fb[0]).
+	 */
+	if (var->xres_virtual > ftlcdc200->fb[0]->info->var.xres)
+		return -EINVAL;
+
+	if (var->yres_virtual > ftlcdc200->fb[0]->info->var.yres)
+		return -EINVAL;
+
+	var->xres = var->xres_virtual;
+	var->yres = var->yres_virtual;
+
+	ret = ftlcdc200_grow_framebuffer(info, var);
+	if (ret)
+		return ret;
+
+	switch (var->bits_per_pixel) {
+	case 1: case 2: case 4: case 8:
+		var->red.offset = var->green.offset = var->blue.offset = 0;
+		var->red.length = var->green.length = var->blue.length
+				= var->bits_per_pixel;
+		break;
+
+	case 16:	/* RGB:565 mode */
+		var->red.offset		= 11;
+		var->green.offset	= 5;
+		var->blue.offset	= 0;
+
+		var->red.length		= 5;
+		var->green.length	= 6;
+		var->blue.length	= 5;
+		var->transp.length	= 0;
+		break;
+
+	case 32:	/* RGB:888 mode */
+		var->red.offset		= 16;
+		var->green.offset	= 8;
+		var->blue.offset	= 0;
+		var->transp.offset	= 24;
+
+		var->red.length = var->green.length = var->blue.length = 8;
+		var->transp.length	= 8;
+		break;
+
+	default:
+		dev_err(dev, "color depth %d not supported\n",
+			var->bits_per_pixel);
+		return -EINVAL;
+	}
+
+	return 0;
+}
+#endif
+
 /**
- * ftlcdc200_set_par - Alters the hardware state.
+ * fb_set_par - Alters the hardware state.
  * @info: frame buffer structure that represents a single frame buffer
  *
  * Using the fb_var_screeninfo in fb_info we set the resolution of the
@@ -412,14 +614,15 @@ static int ftlcdc200_check_var(struct fb_var_screeninfo *var,
  *
  * Returns negative errno on error, or zero on success.
  */
-static int ftlcdc200_set_par(struct fb_info *info)
+static int ftlcdc200_fb0_set_par(struct fb_info *info)
 {
-	struct ftlcdc200 *ftlcdc200 = info->par;
+	struct ftlcdc200fb *ftlcdc200fb = info->par;
+	struct ftlcdc200 *ftlcdc200 = ftlcdc200fb->ftlcdc200;
 	unsigned long clk_value_khz;
 	unsigned int divno;
 	unsigned int reg;
 
-	dev_dbg(info->device, "%s:\n", __func__);
+	dev_dbg(info->device, "fb%d: %s:\n", info->node, __func__);
 	dev_dbg(info->device, "  resolution:     %ux%u (%ux%u virtual)\n",
 		info->var.xres, info->var.yres,
 		info->var.xres_virtual, info->var.yres_virtual);
@@ -555,8 +758,8 @@ static int ftlcdc200_set_par(struct fb_info *info)
 	/*
 	 * Function Enable
 	 */
-	reg = FTLCDC200_CTRL_ENABLE
-	    | FTLCDC200_CTRL_LCD;
+	reg = ioread32(ftlcdc200->base + FTLCDC200_OFFSET_CTRL);
+	reg |= FTLCDC200_CTRL_ENABLE | FTLCDC200_CTRL_LCD;
 
 	dev_dbg(info->device, "  [CTRL]       = %08x\n", reg);
 	iowrite32(reg, ftlcdc200->base + FTLCDC200_OFFSET_CTRL);
@@ -564,8 +767,44 @@ static int ftlcdc200_set_par(struct fb_info *info)
 	return 0;
 }
 
+#if CONFIG_FTLCDC200_NR_FB > 1
+static int ftlcdc200_fb1_set_par(struct fb_info *info)
+{
+	struct ftlcdc200fb *ftlcdc200fb = info->par;
+	struct ftlcdc200 *ftlcdc200 = ftlcdc200fb->ftlcdc200;
+	unsigned int reg;
+
+	dev_dbg(info->device, "fb%d: %s:\n", info->node, __func__);
+	dev_dbg(info->device, "  resolution:     %ux%u (%ux%u virtual)\n",
+		info->var.xres, info->var.yres,
+		info->var.xres_virtual, info->var.yres_virtual);
+
+	/*
+	 * Fill uninitialized fields of struct fb_fix_screeninfo
+	 */
+	if (info->var.bits_per_pixel == 1)
+		info->fix.visual = FB_VISUAL_MONO01;
+	else if (info->var.bits_per_pixel <= 8)
+		info->fix.visual = FB_VISUAL_PSEUDOCOLOR;
+	else
+		info->fix.visual = FB_VISUAL_TRUECOLOR;
+
+	info->fix.line_length = info->var.xres_virtual *
+				DIV_ROUND_UP(info->var.bits_per_pixel, 8);
+
+	/*
+	 * Dimension
+	 */
+	reg = FTLCDC200_PIP_DIM_H(info->var.xres) | FTLCDC200_PIP_DIM_V(info->var.yres);
+	dev_dbg(ftlcdc200->dev, "  [PIP DIM1]   = %08x\n", reg);
+	iowrite32(reg, ftlcdc200->base + FTLCDC200_OFFSET_PIP_DIM1);
+
+	return 0;
+}
+#endif
+
 /**
- * ftlcdc200_setcolreg - Optional function. Sets a color register.
+ * fb_setcolreg - Optional function. Sets a color register.
  * @regno: Which register in the CLUT we are programming 
  * @red: The red value which can be up to 16 bits wide 
  * @green: The green value which can be up to 16 bits wide 
@@ -586,14 +825,14 @@ static int ftlcdc200_set_par(struct fb_info *info)
  * 
  * Returns negative errno on error, or zero on success.
  */
-static int ftlcdc200_setcolreg(unsigned regno, unsigned red, unsigned green,
-	unsigned blue, unsigned transp, struct fb_info *info)
+static int ftlcdc200_fb_setcolreg(unsigned regno, unsigned red, unsigned green,
+		unsigned blue, unsigned transp, struct fb_info *info)
 {
-	struct ftlcdc200 *ftlcdc200 = info->par;
+	struct ftlcdc200fb *ftlcdc200fb = info->par;
 	u32 val;
 
-	dev_dbg(info->device, "%s(%d, %d, %d, %d, %d)\n", __func__,
-		regno, red, green, blue, transp);
+	dev_dbg(info->device, "fb%d: %s(%d, %d, %d, %d, %d)\n",
+		info->node, __func__, regno, red, green, blue, transp);
 
 	if (regno >= 256)  /* no. of hw registers */
 		return -EINVAL;
@@ -628,7 +867,7 @@ static int ftlcdc200_setcolreg(unsigned regno, unsigned red, unsigned green,
 		val |= (green << info->var.green.offset);
 		val |= (blue << info->var.blue.offset);
 
-		ftlcdc200->pseudo_palette[regno] = val;
+		ftlcdc200fb->pseudo_palette[regno] = val;
 
 		break;
 
@@ -645,7 +884,7 @@ static int ftlcdc200_setcolreg(unsigned regno, unsigned red, unsigned green,
 }
 
 /**
- * ftlcdc200_pan_display - NOT a required function. Pans the display.
+ * fb_pan_display - NOT a required function. Pans the display.
  * @var: frame buffer variable screen structure
  * @info: frame buffer structure that represents a single frame buffer
  *
@@ -655,35 +894,438 @@ static int ftlcdc200_setcolreg(unsigned regno, unsigned red, unsigned green,
  *
  * Returns negative errno on error, or zero on success.
  */
-static int ftlcdc200_pan_display(struct fb_var_screeninfo *var,
-			       struct fb_info *info)
+static int ftlcdc200_fb_pan_display(struct fb_var_screeninfo *var,
+		struct fb_info *info)
 {
-	struct ftlcdc200 *ftlcdc200 = info->par;
+	struct ftlcdc200fb *ftlcdc200fb = info->par;
+	struct ftlcdc200 *ftlcdc200 = ftlcdc200fb->ftlcdc200;
 	unsigned long dma_addr;
 	unsigned int value;
 
-	dev_dbg(info->device, "%s\n", __func__);
+	dev_dbg(info->device, "fb%d: %s\n", info->node, __func__);
 
 	dma_addr = info->fix.smem_start + var->yoffset * info->fix.line_length;
 	value = FTLCDC200_FRAME_BASE(dma_addr);
 
-	iowrite32(value, ftlcdc200->base + FTLCDC200_OFFSET_FRAME_BASE0);
+	ftlcdc200fb->set_frame_base(ftlcdc200, value);
 	dev_dbg(info->device, "  [FRAME BASE] = %08x\n", value);
 	return 0;
 }
 
-static struct fb_ops ftlcdc200_fb_ops = {
+static struct fb_ops ftlcdc200_fb0_ops = {
 	.owner		= THIS_MODULE,
-	.fb_check_var	= ftlcdc200_check_var,
-	.fb_set_par	= ftlcdc200_set_par,
-	.fb_setcolreg	= ftlcdc200_setcolreg,
-	.fb_pan_display	= ftlcdc200_pan_display,
+	.fb_check_var	= ftlcdc200_fb0_check_var,
+	.fb_set_par	= ftlcdc200_fb0_set_par,
+	.fb_setcolreg	= ftlcdc200_fb_setcolreg,
+	.fb_pan_display	= ftlcdc200_fb_pan_display,
 
 	/* These are generic software based fb functions */
 	.fb_fillrect	= cfb_fillrect,
 	.fb_copyarea	= cfb_copyarea,
 	.fb_imageblit	= cfb_imageblit,
 };
+
+#if CONFIG_FTLCDC200_NR_FB > 1
+static struct fb_ops ftlcdc200_fb1_ops = {
+	.owner		= THIS_MODULE,
+	.fb_check_var	= ftlcdc200_fb1_check_var,
+	.fb_set_par	= ftlcdc200_fb1_set_par,
+	.fb_setcolreg	= ftlcdc200_fb_setcolreg,
+	.fb_pan_display	= ftlcdc200_fb_pan_display,
+
+	/* These are generic software based fb functions */
+	.fb_fillrect	= cfb_fillrect,
+	.fb_copyarea	= cfb_copyarea,
+	.fb_imageblit	= cfb_imageblit,
+};
+#endif
+
+/******************************************************************************
+ * struct device_attribute functions
+ *
+ * These functions handles files in
+ *	/sys/devices/platform/ftlcdc200.x/
+ *****************************************************************************/
+static ssize_t ftlcdc200_show_pip(struct device *device,
+		struct device_attribute *attr, char *buf)
+{
+	struct ftlcdc200 *ftlcdc200 = dev_get_drvdata(device);
+	unsigned int reg;
+	int pip = 0;
+
+	dev_dbg(ftlcdc200->dev, "%s\n", __func__);
+	reg = ioread32(ftlcdc200->base + FTLCDC200_OFFSET_CTRL);
+	reg &= FTLCDC200_CTRL_PIP_MASK;
+
+	if (reg == FTLCDC200_CTRL_PIP_SINGLE) {
+		pip = 1;
+	} else if (reg == FTLCDC200_CTRL_PIP_DOUBLE) {
+		pip = 2;
+	}
+
+	return snprintf(buf, PAGE_SIZE, "%d\n", pip);
+}
+
+static ssize_t ftlcdc200_store_pip(struct device *device,
+		struct device_attribute *attr, const char *buf, size_t count)
+{
+	struct ftlcdc200 *ftlcdc200 = dev_get_drvdata(device);
+	char **last = NULL;
+	unsigned int reg;
+	int pip;
+
+	dev_dbg(ftlcdc200->dev, "%s\n", __func__);
+	pip = simple_strtoul(buf, last, 0);
+	reg = ioread32(ftlcdc200->base + FTLCDC200_OFFSET_CTRL);
+	reg &= ~FTLCDC200_CTRL_PIP_MASK;
+	reg |= FTLCDC200_CTRL_BLEND;
+
+	if (pip == 0) {
+	} else if (pip == 1) {
+		reg |= FTLCDC200_CTRL_PIP_SINGLE;
+	} else if (pip == 2) {
+		reg |= FTLCDC200_CTRL_PIP_DOUBLE;
+	} else {
+		dev_info(ftlcdc200->dev, "invalid pip window number %d\n", pip);
+		return -EINVAL;
+	}
+
+	dev_dbg(ftlcdc200->dev, "  [CTRL]       = %08x\n", reg);
+	iowrite32(reg, ftlcdc200->base + FTLCDC200_OFFSET_CTRL);
+
+	return count;
+}
+
+static ssize_t ftlcdc200_show_blend1(struct device *device,
+		struct device_attribute *attr, char *buf)
+{
+	struct ftlcdc200 *ftlcdc200 = dev_get_drvdata(device);
+	unsigned int reg;
+	int blend1;
+
+	dev_dbg(ftlcdc200->dev, "%s\n", __func__);
+	reg = ioread32(ftlcdc200->base + FTLCDC200_OFFSET_PIP);
+	blend1 = FTLCDC200_PIP_BLEND_EXTRACT_1(reg);
+
+	return snprintf(buf, PAGE_SIZE, "%d\n", blend1);
+}
+
+static ssize_t ftlcdc200_store_blend1(struct device *device,
+		struct device_attribute *attr, const char *buf, size_t count)
+{
+	struct ftlcdc200 *ftlcdc200 = dev_get_drvdata(device);
+	char **last = NULL;
+	unsigned int reg;
+	int blend1;
+
+	dev_dbg(ftlcdc200->dev, "%s\n", __func__);
+	blend1 = simple_strtoul(buf, last, 0);
+
+	if (blend1 > 16)
+		return -EINVAL;
+
+	reg = ioread32(ftlcdc200->base + FTLCDC200_OFFSET_PIP);
+	reg &= ~FTLCDC200_PIP_BLEND_MASK_1;
+	reg |= FTLCDC200_PIP_BLEND_1(blend1);
+
+	dev_dbg(ftlcdc200->dev, "  [PIP]        = %08x\n", reg);
+	iowrite32(reg, ftlcdc200->base + FTLCDC200_OFFSET_PIP);
+
+	return count;
+}
+
+static ssize_t ftlcdc200_show_blend2(struct device *device,
+		struct device_attribute *attr, char *buf)
+{
+	struct ftlcdc200 *ftlcdc200 = dev_get_drvdata(device);
+	unsigned int reg;
+	int blend2;
+
+	dev_dbg(ftlcdc200->dev, "%s\n", __func__);
+	reg = ioread32(ftlcdc200->base + FTLCDC200_OFFSET_PIP);
+	blend2 = FTLCDC200_PIP_BLEND_EXTRACT_2(reg);
+
+	return snprintf(buf, PAGE_SIZE, "%d\n", blend2);
+}
+
+static ssize_t ftlcdc200_store_blend2(struct device *device,
+		struct device_attribute *attr, const char *buf, size_t count)
+{
+	struct ftlcdc200 *ftlcdc200 = dev_get_drvdata(device);
+	char **last = NULL;
+	unsigned int reg;
+	int blend2;
+
+	dev_dbg(ftlcdc200->dev, "%s\n", __func__);
+	blend2 = simple_strtoul(buf, last, 0);
+
+	if (blend2 > 16)
+		return -EINVAL;
+
+	reg = ioread32(ftlcdc200->base + FTLCDC200_OFFSET_PIP);
+	reg &= ~FTLCDC200_PIP_BLEND_MASK_2;
+	reg |= FTLCDC200_PIP_BLEND_2(blend2);
+
+	dev_dbg(ftlcdc200->dev, "  [PIP]        = %08x\n", reg);
+	iowrite32(reg, ftlcdc200->base + FTLCDC200_OFFSET_PIP);
+
+	return count;
+}
+
+static struct device_attribute ftlcdc200_device_attrs[] = {
+	__ATTR(pip, S_IRUGO|S_IWUSR, ftlcdc200_show_pip, ftlcdc200_store_pip),
+	__ATTR(blend1, S_IRUGO|S_IWUSR, ftlcdc200_show_blend1, ftlcdc200_store_blend1),
+	__ATTR(blend2, S_IRUGO|S_IWUSR, ftlcdc200_show_blend2, ftlcdc200_store_blend2),
+};
+
+/******************************************************************************
+ * struct device_attribute functions
+ *
+ * These functions handles files in
+ *	/sys/class/graphics/fb1/
+ *	/sys/class/graphics/fb2/
+ *****************************************************************************/
+#if CONFIG_FTLCDC200_NR_FB > 1
+static ssize_t ftlcdc200_show_pos(struct device *device,
+		struct device_attribute *attr, char *buf)
+{
+	struct fb_info *info = dev_get_drvdata(device);
+	struct ftlcdc200fb *ftlcdc200fb = info->par;
+	struct ftlcdc200 *ftlcdc200 = ftlcdc200fb->ftlcdc200;
+	unsigned int x, y;
+
+	dev_dbg(ftlcdc200->dev, "fb%d: %s\n", info->node, __func__);
+	ftlcdc200fb->get_position(ftlcdc200, &x, &y);
+
+	return snprintf(buf, PAGE_SIZE, "%d,%d\n", x, y);
+}
+
+static ssize_t ftlcdc200_store_pos(struct device *device,
+		struct device_attribute *attr, const char *buf, size_t count)
+{
+	struct fb_info *info = dev_get_drvdata(device);
+	struct ftlcdc200fb *ftlcdc200fb = info->par;
+	struct ftlcdc200 *ftlcdc200 = ftlcdc200fb->ftlcdc200;
+	char *last = NULL;
+	unsigned int x, y;
+
+	dev_dbg(ftlcdc200->dev, "fb%d: %s\n", info->node, __func__);
+
+	x = simple_strtoul(buf, &last, 0);
+	last++;
+	if (last - buf >= count)
+		return -EINVAL;
+	y = simple_strtoul(last, &last, 0);
+
+	ftlcdc200fb->set_position(ftlcdc200, x, y);
+
+	return count;
+}
+
+static struct device_attribute ftlcdc200_fb1_device_attrs[] = {
+	__ATTR(position, S_IRUGO|S_IWUSR, ftlcdc200_show_pos, ftlcdc200_store_pos),
+};
+#endif
+
+/******************************************************************************
+ * internal functions - struct ftlcdc200fb
+ *****************************************************************************/
+static int __init ftlcdc200_alloc_ftlcdc200fb(struct ftlcdc200 *ftlcdc200, int nr)
+{
+	struct device *dev = ftlcdc200->dev;
+	struct ftlcdc200fb *ftlcdc200fb;
+	struct fb_info *info;
+	int ret;
+
+	dev_dbg(dev, "%s\n", __func__);
+	/*
+	 * Allocate info and par
+	 */
+	info = framebuffer_alloc(sizeof(struct ftlcdc200fb), dev);
+	if (!info) {
+		dev_err(dev, "Failed to allocate fb_info\n");
+		ret = -ENOMEM;
+		goto err_alloc_info;
+	}
+
+	ftlcdc200fb = info->par;
+	ftlcdc200fb->info = info;
+
+	ftlcdc200fb->ftlcdc200 = ftlcdc200;
+	ftlcdc200->fb[nr] = ftlcdc200fb;
+
+	/*
+	 * Set up flags to indicate what sort of acceleration your
+	 * driver can provide (pan/wrap/copyarea/etc.) and whether it
+	 * is a module -- see FBINFO_* in include/linux/fb.h
+	 */
+	info->flags = FBINFO_DEFAULT;
+
+	switch (nr) {
+	case 0:
+		info->fbops = &ftlcdc200_fb0_ops;
+		ftlcdc200fb->set_frame_base = ftlcdc200_fb0_set_frame_base;
+		break;
+#if CONFIG_FTLCDC200_NR_FB > 1
+	case 1:
+		info->fbops = &ftlcdc200_fb1_ops;
+		ftlcdc200fb->set_frame_base = ftlcdc200_fb1_set_frame_base;
+		ftlcdc200fb->set_position = ftlcdc200_fb1_set_position;
+		ftlcdc200fb->get_position = ftlcdc200_fb1_get_position;
+
+		ftlcdc200fb->set_position(ftlcdc200, 0, 0);
+		break;
+#if CONFIG_FTLCDC200_NR_FB > 2
+	case 2:
+		info->fbops = &ftlcdc200_fb1_ops;
+		ftlcdc200fb->set_frame_base = ftlcdc200_fb2_set_frame_base;
+		ftlcdc200fb->set_position = ftlcdc200_fb2_set_position;
+		ftlcdc200fb->get_position = ftlcdc200_fb2_get_position;
+
+		ftlcdc200fb->set_position(ftlcdc200, 0, 0);
+		break;
+
+#if CONFIG_FTLCDC200_NR_FB > 3
+	case 3:
+//		info->fbops = &ftlcdc200_fb3_ops;
+		ftlcdc200fb->set_frame_base = ftlcdc200_fb3_set_frame_base;
+		break;
+#endif
+#endif
+#endif
+	default:
+		BUG();
+	}
+
+	info->pseudo_palette = ftlcdc200fb->pseudo_palette;
+
+	/*
+	 * Allocate colormap
+	 */
+	ret = fb_alloc_cmap(&info->cmap, 256, 0);
+	if (ret < 0) {
+		dev_err(dev, "Failed to allocate colormap\n");
+		goto err_alloc_cmap;
+	}
+
+	/*
+	 * Copy default parameters
+	 */
+	info->fix = ftlcdc200_default_fix;
+	info->var = ftlcdc200_default_var;
+
+	ret = info->fbops->fb_check_var(&info->var, info);
+	if (ret < 0) {
+		dev_err(dev, "fb_check_var() failed\n");
+		goto err_check_var;
+	}
+
+	/*
+	 * Does a call to fb_set_par() before register_framebuffer needed?  This
+	 * will depend on you and the hardware.  If you are sure that your driver
+	 * is the only device in the system, a call to fb_set_par() is safe.
+	 *
+	 * Hardware in x86 systems has a VGA core.  Calling set_par() at this
+	 * point will corrupt the VGA console, so it might be safer to skip a
+	 * call to set_par here and just allow fbcon to do it for you.
+	 */
+	info->fbops->fb_set_par(info);
+
+	/*
+	 * Tell the world that we're ready to go
+	 */
+	if (register_framebuffer(info) < 0) {
+		dev_err(dev, "Failed to register frame buffer\n");
+		ret = -EINVAL;
+		goto err_register_info;
+	}
+
+	switch (nr) {
+	case 0:
+		break;
+#if CONFIG_FTLCDC200_NR_FB > 1
+	case 1:
+#if CONFIG_FTLCDC200_NR_FB > 2
+	case 2:
+#endif
+		/*
+		 * create files in /sys/class/graphics/fbx/
+		 */
+		ret = device_add_attributes(info->dev, ftlcdc200_fb1_device_attrs);
+		if (ret) {
+			dev_err(dev, "Failed to create device files\n");
+			goto err_sysfs;
+		}
+
+		break;
+
+#if CONFIG_FTLCDC200_NR_FB > 3
+	case 3:
+		break;
+#endif
+#endif
+	default:
+		BUG();
+	}
+
+	dev_info(dev, "fb%d: %s frame buffer device\n", info->node,
+		info->fix.id);
+
+	return 0;
+
+#if CONFIG_FTLCDC200_NR_FB > 1
+err_sysfs:
+	unregister_framebuffer(info);
+#endif
+err_register_info:
+err_check_var:
+	if (info->screen_base) {
+		dma_free_writecombine(NULL, info->fix.smem_len, info->screen_base,
+				(dma_addr_t )info->fix.smem_start);
+	}
+
+	fb_dealloc_cmap(&info->cmap);
+err_alloc_cmap:
+	framebuffer_release(info);
+err_alloc_info:
+	return ret;
+}
+
+static void ftlcdc200_free_ftlcdc200fb(struct ftlcdc200fb *ftlcdc200fb, int nr)
+{
+	struct fb_info *info = ftlcdc200fb->info;
+	struct ftlcdc200 *ftlcdc200 = ftlcdc200fb->ftlcdc200;
+	struct device *dev = ftlcdc200->dev;
+
+	dev_dbg(dev, "%s\n", __func__);
+	switch (nr) {
+	case 0:
+		break;
+#if CONFIG_FTLCDC200_NR_FB > 1
+	case 1:
+#if CONFIG_FTLCDC200_NR_FB > 2
+	case 2:
+#endif
+		device_remove_attributes(info->dev, ftlcdc200_fb1_device_attrs);
+
+		break;
+
+#if CONFIG_FTLCDC200_NR_FB > 3
+	case 3:
+		break;
+#endif
+#endif
+	default:
+		BUG();
+	}
+
+	unregister_framebuffer(info);
+	dma_free_writecombine(NULL, info->fix.smem_len, info->screen_base,
+				(dma_addr_t )info->fix.smem_start);
+
+	fb_dealloc_cmap(&info->cmap);
+	framebuffer_release(info);
+}
 
 /******************************************************************************
  * struct platform_driver functions
@@ -693,10 +1335,10 @@ static int __init ftlcdc200_probe(struct platform_device *pdev)
 	struct device *dev = &pdev->dev;
 	struct ftlcdc200 *ftlcdc200;
 	struct resource *res;
-	struct fb_info *info;
 	unsigned int reg;
 	int irq;
 	int ret;
+	int i;
 
 	dev_dbg(dev, "%s\n", __func__);
 	res = platform_get_resource(pdev, IORESOURCE_MEM, 0);
@@ -710,19 +1352,15 @@ static int __init ftlcdc200_probe(struct platform_device *pdev)
 		goto err_get_irq;
 	}
 
-	/*
-	 * Allocate info and par
-	 */
-	info = framebuffer_alloc(sizeof(struct ftlcdc200), dev);
-	if (!info) {
-		dev_err(dev, "Failed to allocate fb_info\n");
+	ftlcdc200 = kzalloc(sizeof(struct ftlcdc200), GFP_KERNEL);
+	if (!ftlcdc200) {
+		dev_err(dev, "Failed to allocate private data\n");
 		ret = -ENOMEM;
-		goto err_alloc_info;
+		goto err_alloc_ftlcdc200;
 	}
 
-	platform_set_drvdata(pdev, info);
-
-	ftlcdc200 = info->par;
+	platform_set_drvdata(pdev, ftlcdc200);
+	ftlcdc200->dev = dev;
 
 	/*
 	 * Map io memory
@@ -750,7 +1388,7 @@ static int __init ftlcdc200_probe(struct platform_device *pdev)
 	/*
 	 * Register interrupt handler
 	 */
-	ret = request_irq(irq, ftlcdc200_interrupt, IRQF_SHARED, pdev->name, info);
+	ret = request_irq(irq, ftlcdc200_interrupt, IRQF_SHARED, pdev->name, ftlcdc200);
 	if (ret < 0) {
 		dev_err(dev, "Failed to request irq %d\n", irq);
 		goto err_req_irq;
@@ -776,81 +1414,39 @@ static int __init ftlcdc200_probe(struct platform_device *pdev)
 #endif
 
 	/*
-	 * Set up flags to indicate what sort of acceleration your
-	 * driver can provide (pan/wrap/copyarea/etc.) and whether it
-	 * is a module -- see FBINFO_* in include/linux/fb.h
+	 * create files in /sys/devices/platform/ftlcdc200.x/
 	 */
-	info->flags = FBINFO_DEFAULT;
-
-	info->fbops = &ftlcdc200_fb_ops;
-	info->pseudo_palette = ftlcdc200->pseudo_palette;
-
-	/*
-	 * Allocate colormap
-	 */
-	ret = fb_alloc_cmap(&info->cmap, 256, 0);
-	if (ret < 0) {
-		dev_err(dev, "Failed to allocate colormap\n");
-		goto err_alloc_cmap;
+	ret = device_add_attributes(ftlcdc200->dev, ftlcdc200_device_attrs);
+	if (ret) {
+		dev_err(dev, "Failed to create device files\n");
+		goto err_sysfs;
 	}
 
-	/*
-	 * Copy default parameters
-	 */
-	info->fix = ftlcdc200_default_fix;
-	info->var = ftlcdc200_default_var;
-
-	ret = ftlcdc200_check_var(&info->var, info);
-	if (ret < 0) {
-		dev_err(dev, "ftlcdc200_check_var() failed\n");
-		goto err_check_var;
+	for (i = 0; i < CONFIG_FTLCDC200_NR_FB; i++) {
+		ret = ftlcdc200_alloc_ftlcdc200fb(ftlcdc200, i);
+		if (ret) {
+			goto err_alloc_ftlcdc200fb;
+		}
 	}
-
-	/*
-	 * Does a call to fb_set_par() before register_framebuffer needed?  This
-	 * will depend on you and the hardware.  If you are sure that your driver
-	 * is the only device in the system, a call to fb_set_par() is safe.
-	 *
-	 * Hardware in x86 systems has a VGA core.  Calling set_par() at this
-	 * point will corrupt the VGA console, so it might be safer to skip a
-	 * call to set_par here and just allow fbcon to do it for you.
-	 */
-	ftlcdc200_set_par(info);
-
-	/*
-	 * Tell the world that we're ready to go
-	 */
-	if (register_framebuffer(info) < 0) {
-		dev_err(dev, "Failed to register frame buffer\n");
-		ret = -EINVAL;
-		goto err_register_info;
-	}
-
-	dev_info(dev, "fb%d: %s frame buffer device\n", info->node,
-		info->fix.id);
 
 	return 0;
 
-err_register_info:
+err_alloc_ftlcdc200fb:
 	/* disable LCD HW */
 	iowrite32(0, ftlcdc200->base + FTLCDC200_OFFSET_CTRL);
-err_check_var:
-	if (info->screen_base) {
-		dma_free_writecombine(NULL, info->fix.smem_len, info->screen_base,
-				(dma_addr_t )info->fix.smem_start);
-	}
-
-	fb_dealloc_cmap(&info->cmap);
-err_alloc_cmap:
 	iowrite32(0, ftlcdc200->base + FTLCDC200_OFFSET_INT_ENABLE);
-	free_irq(irq, info);
+
+	while (--i >= 0) {
+		ftlcdc200_free_ftlcdc200fb(ftlcdc200->fb[i], i);
+	}
+err_sysfs:
+	free_irq(irq, ftlcdc200);
 err_req_irq:
 	iounmap(ftlcdc200->base);
 err_ioremap:
 err_req_mem_region:
 	platform_set_drvdata(pdev, NULL);
-	framebuffer_release(info);
-err_alloc_info:
+err_alloc_ftlcdc200:
 err_get_irq:
 	release_resource(res);
 	return ret;
@@ -858,25 +1454,24 @@ err_get_irq:
 
 static int __exit ftlcdc200_remove(struct platform_device *pdev)
 {
-	struct fb_info *info;
 	struct ftlcdc200 *ftlcdc200;
+	int i;
 
-	info = platform_get_drvdata(pdev);
-	ftlcdc200 = info->par;
+	ftlcdc200 = platform_get_drvdata(pdev);
 
 	/* disable LCD HW */
 	iowrite32(0, ftlcdc200->base + FTLCDC200_OFFSET_INT_ENABLE);
 	iowrite32(0, ftlcdc200->base + FTLCDC200_OFFSET_CTRL);
 
-	unregister_framebuffer(info);
-	dma_free_writecombine(NULL, info->fix.smem_len, info->screen_base,
-				(dma_addr_t )info->fix.smem_start);
+	for (i = 0; i < CONFIG_FTLCDC200_NR_FB; i++) {
+		ftlcdc200_free_ftlcdc200fb(ftlcdc200->fb[i], i);
+	}
 
-	fb_dealloc_cmap(&info->cmap);
-	free_irq(ftlcdc200->irq, info);
+	device_remove_attributes(ftlcdc200->dev, ftlcdc200_device_attrs);
+
+	free_irq(ftlcdc200->irq, ftlcdc200);
 	iounmap(ftlcdc200->base);
 	platform_set_drvdata(pdev, NULL);
-	framebuffer_release(info);
 	release_resource(ftlcdc200->res);
 
 	return 0;

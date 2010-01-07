@@ -261,14 +261,20 @@
 /*
  * PIP (Picture in Picture)
  */
-#define FTLCDC200_PIP_BLEND_1(x)	(((x) & 0x1f) << 0)
-#define FTLCDC200_PIP_BLEND_2(x)	(((x) & 0x1f) << 8)
+#define FTLCDC200_PIP_BLEND_1(x)		(((x) & 0x1f) << 0)
+#define FTLCDC200_PIP_BLEND_EXTRACT_1(pb)	(((pb) >> 0) & 0x1f)
+#define FTLCDC200_PIP_BLEND_MASK_1		(0x1f << 0)
+#define FTLCDC200_PIP_BLEND_2(x)		(((x) & 0x1f) << 8)
+#define FTLCDC200_PIP_BLEND_EXTRACT_2(pb)	(((pb) >> 8) & 0x1f)
+#define FTLCDC200_PIP_BLEND_MASK_2		(0x1f << 8)
 
 /*
  * PIP Sub Picture 1/2 Position
  */
 #define FTLCDC200_PIP_POS_V(y)		(((y) & 0x7ff) << 0)
+#define FTLCDC200_PIP_POS_EXTRACT_V(pp)	(((pp) >> 0) & 0x7ff)
 #define FTLCDC200_PIP_POS_H(x)		(((x) & 0x7ff) << 16)
+#define FTLCDC200_PIP_POS_EXTRACT_H(pp)	(((pp) >> 16) & 0x7ff)
 
 /*
  * PIP Sub Picture 1/2 Dimension
