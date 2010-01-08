@@ -29,8 +29,10 @@
 #include "ftlcdc200.h"
 
 /*
- * Actually, I don't know if LC_CLK is AHB clock on A320.  It is not written
- * in A320 data sheet.
+ * LC_CLK on A369 depends on the SCLK_CFG0 register of FTSCU010
+ *	00: AHB clock
+ *	01: APB clock
+ *	10: external clock
  */
 #define LC_CLK	AHB_CLK_IN
 
