@@ -165,6 +165,8 @@ $ echo 100,40 > /sys/class/graphics/fb1/position
 ******************************************************************************
 POP (Picture on Picture) HOWTO:
 
+(1) enable/disable pop
+
 /sys/devices/platform/ftlcdc200.0/pop controls the pop function
 	0: pop disabled
 	1: pop enabled
@@ -177,4 +179,25 @@ $ cat /sys/devices/platform/ftlcdc200.0/pop
 * change the setting (e.g. enable pop)
 
 $ echo 1 > /sys/devices/platform/ftlcdc200.0/pop
+
+
+(2) scale down
+
+/sys/class/graphics/fb0/scaledown
+/sys/class/graphics/fb1/scaledown
+/sys/class/graphics/fb2/scaledown
+/sys/class/graphics/fb3/scaledown
+determine the scale down factor of each image when pop enabled
+	according to data sheet
+	0: scale down disabled
+	1: image scaled down to 1/2 x 1/2
+	2: image scaled down to 1/2 x 1
+
+	however, HW behaves differently from the data sheet (did i misunderstand something?)
+	0: scale down disabled
+	1: image scaled down to 1/4 x 1/2 and fills horizontally
+	2: image scaled down to 1/2 x 1/2 and fills horizontally
+
+* change the setting
+$ echo 1 > /sys/class/graphics/fb0/scaledown
 
