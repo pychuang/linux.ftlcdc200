@@ -291,40 +291,6 @@ static int ftlcdc200_grow_framebuffer(struct fb_info *info,
 	return 0;
 }
 
-#if CONFIG_FTLCDC200_NR_FB > 1
-/*
- * device attribute functions borrowed from drivers/base/core.c
- */
-static int device_add_attributes(struct device *dev,
-				 struct device_attribute *attrs)
-{
-	int error = 0;
-	int i;
-
-	if (attrs) {
-		for (i = 0; attr_name(attrs[i]); i++) {
-			error = device_create_file(dev, &attrs[i]);
-			if (error)
-				break;
-		}
-		if (error)
-			while (--i >= 0)
-				device_remove_file(dev, &attrs[i]);
-	}
-	return error;
-}
-
-static void device_remove_attributes(struct device *dev,
-				     struct device_attribute *attrs)
-{
-	int i;
-
-	if (attrs)
-		for (i = 0; attr_name(attrs[i]); i++)
-			device_remove_file(dev, &attrs[i]);
-}
-#endif
-
 /******************************************************************************
  * internal functions - gamma
  *
@@ -1250,6 +1216,9 @@ static int __init ftlcdc200_alloc_ftlcdc200fb(struct ftlcdc200 *ftlcdc200, int n
 	struct ftlcdc200fb *ftlcdc200fb;
 	struct fb_info *info;
 	int ret;
+#if CONFIG_FTLCDC200_NR_FB > 1
+	int i;
+#endif
 
 	dev_dbg(dev, "%s\n", __func__);
 	/*
@@ -1368,9 +1337,19 @@ static int __init ftlcdc200_alloc_ftlcdc200fb(struct ftlcdc200 *ftlcdc200, int n
 		/*
 		 * create files in /sys/class/graphics/fbx/
 		 */
-		ret = device_add_attributes(info->dev, ftlcdc200_fb1_device_attrs);
+		for (i = 0; i < ARRAY_SIZE(ftlcdc200_fb1_device_attrs); i++) {
+			ret = device_create_file(info->dev,
+				&ftlcdc200_fb1_device_attrs[i]);
+			if (ret)
+				break;
+		}
+
 		if (ret) {
 			dev_err(dev, "Failed to create device files\n");
+			while (--i >= 0) {
+				device_remove_file(info->dev,
+					&ftlcdc200_fb1_device_attrs[i]);
+			}
 			goto err_sysfs;
 		}
 
@@ -1414,6 +1393,9 @@ static void ftlcdc200_free_ftlcdc200fb(struct ftlcdc200fb *ftlcdc200fb, int nr)
 	struct fb_info *info = ftlcdc200fb->info;
 	struct ftlcdc200 *ftlcdc200 = ftlcdc200fb->ftlcdc200;
 	struct device *dev = ftlcdc200->dev;
+#if CONFIG_FTLCDC200_NR_FB > 1
+	int i;
+#endif
 
 	dev_dbg(dev, "%s\n", __func__);
 	switch (nr) {
@@ -1424,7 +1406,9 @@ static void ftlcdc200_free_ftlcdc200fb(struct ftlcdc200fb *ftlcdc200fb, int nr)
 #if CONFIG_FTLCDC200_NR_FB > 2
 	case 2:
 #endif
-		device_remove_attributes(info->dev, ftlcdc200_fb1_device_attrs);
+		for (i = 0; ARRAY_SIZE(ftlcdc200_fb1_device_attrs); i++)
+			device_remove_file(info->dev,
+				&ftlcdc200_fb1_device_attrs[i]);
 
 		break;
 #endif
@@ -1536,11 +1520,22 @@ static int __init ftlcdc200_probe(struct platform_device *pdev)
 	/*
 	 * create files in /sys/devices/platform/ftlcdc200.x/
 	 */
-	ret = device_add_attributes(ftlcdc200->dev, ftlcdc200_device_attrs);
+	for (i = 0; i < ARRAY_SIZE(ftlcdc200_device_attrs); i++) {
+		ret = device_create_file(ftlcdc200->dev,
+			&ftlcdc200_device_attrs[i]);
+		if (ret)
+			break;
+	}
+
 	if (ret) {
 		dev_err(dev, "Failed to create device files\n");
+		while (--i >= 0) {
+			device_remove_file(ftlcdc200->dev,
+				&ftlcdc200_device_attrs[i]);
+		}
 		goto err_sysfs;
 	}
+
 #endif
 
 	for (i = 0; i < CONFIG_FTLCDC200_NR_FB; i++) {
@@ -1591,7 +1586,9 @@ static int __exit ftlcdc200_remove(struct platform_device *pdev)
 	}
 
 #if CONFIG_FTLCDC200_NR_FB > 1
-	device_remove_attributes(ftlcdc200->dev, ftlcdc200_device_attrs);
+	for (i = 0; ARRAY_SIZE(ftlcdc200_device_attrs); i++)
+		device_remove_file(ftlcdc200->dev,
+			&ftlcdc200_device_attrs[i]);
 #endif
 	free_irq(ftlcdc200->irq, ftlcdc200);
 	iounmap(ftlcdc200->base);
