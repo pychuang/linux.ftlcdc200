@@ -39,14 +39,28 @@ CONFIG_FB_CFB_IMAGEBLIT=y
 
 $ insmod ftlcdc200.ko
 
-(2) find out the dynamically create major/minor number of fb0 device file
+(2) find out the dynamically create major/minor number of fb* device files
 
-$ cat /sys/class/graphics/fb0/dev
+$ ls /sys/devices/platform/ftlcdc200.0/
+blend1        driver        graphics:fb2  pip           subsystem
+blend2        graphics:fb0  graphics:fb3  pop           uevent
+bus           graphics:fb1  modalias      power
+
+$ cat /sys/devices/platform/ftlcdc200.0/graphics\:fb0/dev
 29:0
+$ cat /sys/devices/platform/ftlcdc200.0/graphics\:fb1/dev
+29:1
+$ cat /sys/devices/platform/ftlcdc200.0/graphics\:fb2/dev
+29:2
+$ cat /sys/devices/platform/ftlcdc200.0/graphics\:fb3/dev
+29:3
 
 (3) create device files
 
 $ mknod /dev/fb0 c 29 0
+$ mknod /dev/fb1 c 29 1
+$ mknod /dev/fb2 c 29 2
+$ mknod /dev/fb3 c 29 3
 
 ******************************************************************************
 fbcon (framebuffer console) HOWTO:
@@ -70,4 +84,97 @@ CONFIG_LOGO_LINUX_CLUT224=y
 (2) add framebuffer console to kernel command line (you can use it with serial console)
 
 console=tty0
+
+******************************************************************************
+basic function HOWTO:
+
+the image comes from fb0
+
+* you can access the device file to paste an image to framebuffer
+
+$ cp image_file /dev/fb0
+
+* clear the screen by copying zero to the device file
+
+$ cp /dev/zero /dev/fb0
+
+you can see the usable options in /sys/class/graphics/fb0/
+
+******************************************************************************
+PIP (Picture in Picture) HOWTO:
+
+(1) enable/disable pip
+
+/sys/devices/platform/ftlcdc200.0/pip controls the pip function
+	0: pip disabled
+	1: single pip enabled
+	2: double pip enabled
+
+* check the current setting
+
+$ cat /sys/devices/platform/ftlcdc200.0/pip
+0
+
+* change the setting (e.g. enable double pip)
+
+$ echo 2 > /sys/devices/platform/ftlcdc200.0/pip
+
+background image comes from fb0
+pip image 1 comes from fb1
+pip iamge 2 comes from fb2
+
+you need to specify the size of the image you want to paste on top of background, e.g.
+
+$ echo 80,80 > /sys/class/graphics/fb1/virtual_size
+
+
+(2) alpha blending level
+
+/sys/devices/platform/ftlcdc200.0/blend1 and
+/sys/devices/platform/ftlcdc200.0/blend2 are the alpha blending levels
+
+the valid number is the between 0 and 16
+
+* when the pixel covers background, image1, and image2
+
+output pixel value = (image1 x blend1 + image2 x (16 - blend1)) / 16
+
+* when the pixel covers background and image1
+
+output pixel value = (image1 x blend1 + background x (16 - blend1)) / 16
+
+* when the pixel covers background and image2
+
+output pixel value = (image2 x blend2 + background x (16 - blend2)) / 16
+
+
+(3) pip position
+
+/sys/class/graphics/fb1/position determines the position of pip image 1
+/sys/class/graphics/fb2/position determines the position of pip image 2
+
+* check the current position
+
+$ cat /sys/class/graphics/fb1/position
+0,0
+
+* change the position, e.g.
+
+$ echo 100,40 > /sys/class/graphics/fb1/position
+
+******************************************************************************
+POP (Picture on Picture) HOWTO:
+
+/sys/devices/platform/ftlcdc200.0/pop controls the pop function
+	0: pop disabled
+	1: pop enabled
+
+* check the current setting
+
+$ cat /sys/devices/platform/ftlcdc200.0/pop
+0
+
+* change the setting (e.g. enable pop)
+
+$ echo 1 > /sys/devices/platform/ftlcdc200.0/pop
 
