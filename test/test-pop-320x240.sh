@@ -12,25 +12,28 @@ echo "enable pop (`cat /sys/devices/platform/ftlcdc200.0/pop`)"
 state=0
 for file in 565_160x120_patterns/*
 do
-	case $state in
-	0)
-		state=1
-		cp $file /dev/fb0
-		;;
-	1)
-		state=2
-		cp $file /dev/fb1
-		;;
-	2)
-		state=3
-		cp $file /dev/fb3
-		;;
-	3)
+	if [ -f $file ]
+	then
+		case $state in
+		0)
+			state=1
+			cp $file /dev/fb0
+			;;
+		1)
+			state=2
+			cp $file /dev/fb1
+			;;
+		2)
+			state=3
+			cp $file /dev/fb3
+			;;
+		3)
 		state=0
-		cp $file /dev/fb2
-		;;
-	esac
-	sleep 1
+			cp $file /dev/fb2
+			;;
+		esac
+		sleep 1
+	fi
 done
 
 # disable pop
