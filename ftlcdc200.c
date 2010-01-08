@@ -63,9 +63,15 @@ struct ftlcdc200fb {
 	struct ftlcdc200 *ftlcdc200;
 	struct fb_info *info;
 	void (*set_frame_base)(struct ftlcdc200 *ftlcdc200, unsigned int value);
+
+	/* for pip */
 	void (*set_dimension)(struct ftlcdc200 *ftlcdc200, int x, int y);
 	void (*set_position)(struct ftlcdc200 *ftlcdc200, int x, int y);
 	void (*get_position)(struct ftlcdc200 *ftlcdc200, int *x, int *y);
+
+	/* for pop */
+	void (*set_scale)(struct ftlcdc200 *ftlcdc200, int scale);
+	int (*get_scale)(struct ftlcdc200 *ftlcdc200);
 
 	/*
 	 * This pseudo_palette is used _only_ by fbcon, thus
@@ -239,6 +245,200 @@ static void ftlcdc200_fb2_set_dimension(struct ftlcdc200 *ftlcdc200,
 	value = FTLCDC200_PIP_DIM_H(x) | FTLCDC200_PIP_DIM_V(y);
 	dev_dbg(ftlcdc200->dev, "  [PIP DIM2]   = %08x\n", value);
 	iowrite32(value, ftlcdc200->base + FTLCDC200_OFFSET_PIP_DIM2);
+}
+#endif
+
+#if CONFIG_FTLCDC200_NR_FB > 3
+static void ftlcdc200_fb0_set_scale(struct ftlcdc200 *ftlcdc200, int scale)
+{
+	unsigned int reg;
+
+	reg = ioread32(ftlcdc200->base + FTLCDC200_OFFSET_SCALE);
+	reg &= ~FTLCDC200_SCALE_0_MASK;
+
+	switch (scale) {
+	case 0:
+		break;
+	case 1:
+		reg |= FTLCDC200_SCALE_0_QUARTER;
+		break;
+	case 2:
+		reg |= FTLCDC200_SCALE_0_HALF;
+		break;
+	default:
+		BUG();
+	}
+
+	dev_dbg(ftlcdc200->dev, "  [SCALE]      = %08x\n", reg);
+	iowrite32(reg, ftlcdc200->base + FTLCDC200_OFFSET_SCALE);
+}
+
+static int ftlcdc200_fb0_get_scale(struct ftlcdc200 *ftlcdc200)
+{
+	unsigned int reg;
+
+	reg = ioread32(ftlcdc200->base + FTLCDC200_OFFSET_SCALE);
+	dev_dbg(ftlcdc200->dev, "  [SCALE]      = %08x\n", reg);
+
+	reg &= FTLCDC200_SCALE_0_MASK;
+
+	switch (reg) {
+	case 0:
+		return 0;
+
+	case FTLCDC200_SCALE_0_QUARTER:
+		return 1;
+
+	case FTLCDC200_SCALE_0_HALF:
+		return 2;
+
+	default:	/* impossible */
+		BUG();
+	}
+}
+
+static void ftlcdc200_fb1_set_scale(struct ftlcdc200 *ftlcdc200, int scale)
+{
+	unsigned int reg;
+
+	reg = ioread32(ftlcdc200->base + FTLCDC200_OFFSET_SCALE);
+	reg &= ~FTLCDC200_SCALE_1_MASK;
+
+	switch (scale) {
+	case 0:
+		break;
+	case 1:
+		reg |= FTLCDC200_SCALE_1_QUARTER;
+		break;
+	case 2:
+		reg |= FTLCDC200_SCALE_1_HALF;
+		break;
+	default:
+		BUG();
+	}
+
+	dev_dbg(ftlcdc200->dev, "  [SCALE]      = %08x\n", reg);
+	iowrite32(reg, ftlcdc200->base + FTLCDC200_OFFSET_SCALE);
+}
+
+static int ftlcdc200_fb1_get_scale(struct ftlcdc200 *ftlcdc200)
+{
+	unsigned int reg;
+
+	reg = ioread32(ftlcdc200->base + FTLCDC200_OFFSET_SCALE);
+	dev_dbg(ftlcdc200->dev, "  [SCALE]      = %08x\n", reg);
+
+	reg &= FTLCDC200_SCALE_1_MASK;
+
+	switch (reg) {
+	case 0:
+		return 0;
+
+	case FTLCDC200_SCALE_1_QUARTER:
+		return 1;
+
+	case FTLCDC200_SCALE_1_HALF:
+		return 2;
+
+	default:	/* impossible */
+		BUG();
+	}
+}
+
+static void ftlcdc200_fb2_set_scale(struct ftlcdc200 *ftlcdc200, int scale)
+{
+	unsigned int reg;
+
+	reg = ioread32(ftlcdc200->base + FTLCDC200_OFFSET_SCALE);
+	reg &= ~FTLCDC200_SCALE_2_MASK;
+
+	switch (scale) {
+	case 0:
+		break;
+	case 1:
+		reg |= FTLCDC200_SCALE_2_QUARTER;
+		break;
+	case 2:
+		reg |= FTLCDC200_SCALE_2_HALF;
+		break;
+	default:
+		BUG();
+	}
+
+	dev_dbg(ftlcdc200->dev, "  [SCALE]      = %08x\n", reg);
+	iowrite32(reg, ftlcdc200->base + FTLCDC200_OFFSET_SCALE);
+}
+
+static int ftlcdc200_fb2_get_scale(struct ftlcdc200 *ftlcdc200)
+{
+	unsigned int reg;
+
+	reg = ioread32(ftlcdc200->base + FTLCDC200_OFFSET_SCALE);
+	dev_dbg(ftlcdc200->dev, "  [SCALE]      = %08x\n", reg);
+
+	reg &= FTLCDC200_SCALE_2_MASK;
+
+	switch (reg) {
+	case 0:
+		return 0;
+
+	case FTLCDC200_SCALE_2_QUARTER:
+		return 1;
+
+	case FTLCDC200_SCALE_2_HALF:
+		return 2;
+
+	default:	/* impossible */
+		BUG();
+	}
+}
+
+static void ftlcdc200_fb3_set_scale(struct ftlcdc200 *ftlcdc200, int scale)
+{
+	unsigned int reg;
+
+	reg = ioread32(ftlcdc200->base + FTLCDC200_OFFSET_SCALE);
+	reg &= ~FTLCDC200_SCALE_3_MASK;
+
+	switch (scale) {
+	case 0:
+		break;
+	case 1:
+		reg |= FTLCDC200_SCALE_3_QUARTER;
+		break;
+	case 2:
+		reg |= FTLCDC200_SCALE_3_HALF;
+		break;
+	default:
+		BUG();
+	}
+
+	dev_dbg(ftlcdc200->dev, "  [SCALE]      = %08x\n", reg);
+	iowrite32(reg, ftlcdc200->base + FTLCDC200_OFFSET_SCALE);
+}
+
+static int ftlcdc200_fb3_get_scale(struct ftlcdc200 *ftlcdc200)
+{
+	unsigned int reg;
+
+	reg = ioread32(ftlcdc200->base + FTLCDC200_OFFSET_SCALE);
+	dev_dbg(ftlcdc200->dev, "  [SCALE]      = %08x\n", reg);
+
+	reg &= FTLCDC200_SCALE_3_MASK;
+
+	switch (reg) {
+	case 0:
+		return 0;
+
+	case FTLCDC200_SCALE_3_QUARTER:
+		return 1;
+
+	case FTLCDC200_SCALE_3_HALF:
+		return 2;
+
+	default:	/* impossible */
+		BUG();
+	}
 }
 #endif
 
@@ -1164,6 +1364,56 @@ static struct device_attribute ftlcdc200_device_attrs[] = {
  * struct device_attribute functions
  *
  * These functions handles files in
+ *	/sys/class/graphics/fb0/
+ *	/sys/class/graphics/fb1/
+ *	/sys/class/graphics/fb2/
+ *	/sys/class/graphics/fb3/
+ *****************************************************************************/
+#if CONFIG_FTLCDC200_NR_FB > 3
+static ssize_t ftlcdc200_show_scale(struct device *device,
+		struct device_attribute *attr, char *buf)
+{
+	struct fb_info *info = dev_get_drvdata(device);
+	struct ftlcdc200fb *ftlcdc200fb = info->par;
+	struct ftlcdc200 *ftlcdc200 = ftlcdc200fb->ftlcdc200;
+	int scale;
+
+	dev_dbg(ftlcdc200->dev, "%s\n", __func__);
+
+	scale = ftlcdc200fb->get_scale(ftlcdc200);
+
+	return snprintf(buf, PAGE_SIZE, "%d\n", scale);
+}
+
+static ssize_t ftlcdc200_store_scale(struct device *device,
+		struct device_attribute *attr, const char *buf, size_t count)
+{
+	struct fb_info *info = dev_get_drvdata(device);
+	struct ftlcdc200fb *ftlcdc200fb = info->par;
+	struct ftlcdc200 *ftlcdc200 = ftlcdc200fb->ftlcdc200;
+	char **last = NULL;
+	int scale;
+
+	dev_dbg(ftlcdc200->dev, "%s\n", __func__);
+	scale = simple_strtoul(buf, last, 0);
+
+	if (scale > 2)
+		return -EINVAL;
+
+	ftlcdc200fb->set_scale(ftlcdc200, scale);
+
+	return count;
+}
+
+static struct device_attribute ftlcdc200_fb_device_attrs[] = {
+	__ATTR(scaledown, S_IRUGO|S_IWUSR, ftlcdc200_show_scale, ftlcdc200_store_scale),
+};
+#endif
+
+/******************************************************************************
+ * struct device_attribute functions
+ *
+ * These functions handles files in
  *	/sys/class/graphics/fb1/
  *	/sys/class/graphics/fb2/
  *****************************************************************************/
@@ -1250,6 +1500,10 @@ static int __init ftlcdc200_alloc_ftlcdc200fb(struct ftlcdc200 *ftlcdc200, int n
 	case 0:
 		info->fbops = &ftlcdc200_fb0_ops;
 		ftlcdc200fb->set_frame_base = ftlcdc200_fb0_set_frame_base;
+#if CONFIG_FTLCDC200_NR_FB > 3
+		ftlcdc200fb->set_scale = ftlcdc200_fb0_set_scale;
+		ftlcdc200fb->get_scale = ftlcdc200_fb0_get_scale;
+#endif
 		break;
 #if CONFIG_FTLCDC200_NR_FB > 1
 	case 1:
@@ -1258,6 +1512,10 @@ static int __init ftlcdc200_alloc_ftlcdc200fb(struct ftlcdc200 *ftlcdc200, int n
 		ftlcdc200fb->set_dimension = ftlcdc200_fb1_set_dimension;
 		ftlcdc200fb->set_position = ftlcdc200_fb1_set_position;
 		ftlcdc200fb->get_position = ftlcdc200_fb1_get_position;
+#if CONFIG_FTLCDC200_NR_FB > 3
+		ftlcdc200fb->set_scale = ftlcdc200_fb1_set_scale;
+		ftlcdc200fb->get_scale = ftlcdc200_fb1_get_scale;
+#endif
 
 		ftlcdc200fb->set_position(ftlcdc200, 0, 0);
 		break;
@@ -1270,6 +1528,10 @@ static int __init ftlcdc200_alloc_ftlcdc200fb(struct ftlcdc200 *ftlcdc200, int n
 		ftlcdc200fb->set_dimension = ftlcdc200_fb2_set_dimension;
 		ftlcdc200fb->set_position = ftlcdc200_fb2_set_position;
 		ftlcdc200fb->get_position = ftlcdc200_fb2_get_position;
+#if CONFIG_FTLCDC200_NR_FB > 3
+		ftlcdc200fb->set_scale = ftlcdc200_fb2_set_scale;
+		ftlcdc200fb->get_scale = ftlcdc200_fb2_get_scale;
+#endif
 
 		ftlcdc200fb->set_position(ftlcdc200, 0, 0);
 		break;
@@ -1279,6 +1541,8 @@ static int __init ftlcdc200_alloc_ftlcdc200fb(struct ftlcdc200 *ftlcdc200, int n
 	case 3:
 		info->fbops = &ftlcdc200_fb3_ops;
 		ftlcdc200fb->set_frame_base = ftlcdc200_fb3_set_frame_base;
+		ftlcdc200fb->set_scale = ftlcdc200_fb3_set_scale;
+		ftlcdc200fb->get_scale = ftlcdc200_fb3_get_scale;
 		break;
 #endif
 	default:
@@ -1328,6 +1592,27 @@ static int __init ftlcdc200_alloc_ftlcdc200fb(struct ftlcdc200 *ftlcdc200, int n
 		goto err_register_info;
 	}
 
+#if CONFIG_FTLCDC200_NR_FB > 3
+	/*
+	 * create files in /sys/class/graphics/fbx/
+	 */
+	for (i = 0; i < ARRAY_SIZE(ftlcdc200_fb_device_attrs); i++) {
+		ret = device_create_file(info->dev,
+			&ftlcdc200_fb_device_attrs[i]);
+		if (ret) {
+			break;
+		}
+	}
+
+	if (ret) {
+		dev_err(dev, "Failed to create device files\n");
+		while (--i >= 0) {
+			device_remove_file(info->dev,
+				&ftlcdc200_fb_device_attrs[i]);
+		}
+		goto err_sysfs1;
+	}
+#endif
 	switch (nr) {
 	case 0:
 		break;
@@ -1352,7 +1637,7 @@ static int __init ftlcdc200_alloc_ftlcdc200fb(struct ftlcdc200 *ftlcdc200, int n
 				device_remove_file(info->dev,
 					&ftlcdc200_fb1_device_attrs[i]);
 			}
-			goto err_sysfs;
+			goto err_sysfs2;
 		}
 
 		break;
@@ -1373,7 +1658,13 @@ static int __init ftlcdc200_alloc_ftlcdc200fb(struct ftlcdc200 *ftlcdc200, int n
 	return 0;
 
 #if CONFIG_FTLCDC200_NR_FB > 1
-err_sysfs:
+err_sysfs2:
+#if CONFIG_FTLCDC200_NR_FB > 3
+	for (i = 0; ARRAY_SIZE(ftlcdc200_fb_device_attrs); i++)
+		device_remove_file(info->dev,
+			&ftlcdc200_fb_device_attrs[i]);
+err_sysfs1:
+#endif
 	unregister_framebuffer(info);
 #endif
 err_register_info:
@@ -1408,7 +1699,7 @@ static void ftlcdc200_free_ftlcdc200fb(struct ftlcdc200fb *ftlcdc200fb, int nr)
 #if CONFIG_FTLCDC200_NR_FB > 2
 	case 2:
 #endif
-		for (i = 0; ARRAY_SIZE(ftlcdc200_fb1_device_attrs); i++)
+		for (i = 0; i < ARRAY_SIZE(ftlcdc200_fb1_device_attrs); i++)
 			device_remove_file(info->dev,
 				&ftlcdc200_fb1_device_attrs[i]);
 
@@ -1423,6 +1714,12 @@ static void ftlcdc200_free_ftlcdc200fb(struct ftlcdc200fb *ftlcdc200fb, int nr)
 	default:
 		BUG();
 	}
+
+#if CONFIG_FTLCDC200_NR_FB > 3
+	for (i = 0; i < ARRAY_SIZE(ftlcdc200_fb_device_attrs); i++)
+		device_remove_file(info->dev,
+			&ftlcdc200_fb_device_attrs[i]);
+#endif
 
 	unregister_framebuffer(info);
 	dma_free_writecombine(NULL, info->fix.smem_len, info->screen_base,
@@ -1588,7 +1885,7 @@ static int __exit ftlcdc200_remove(struct platform_device *pdev)
 	}
 
 #if CONFIG_FTLCDC200_NR_FB > 1
-	for (i = 0; ARRAY_SIZE(ftlcdc200_device_attrs); i++)
+	for (i = 0; i < ARRAY_SIZE(ftlcdc200_device_attrs); i++)
 		device_remove_file(ftlcdc200->dev,
 			&ftlcdc200_device_attrs[i]);
 #endif

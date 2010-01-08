@@ -36,6 +36,24 @@ do
 	fi
 done
 
+# test scale down
+
+for scale in 1 2 0
+do
+	echo $scale > /sys/class/graphics/fb0/scaledown
+	echo "set fb0 scale down = `cat /sys/class/graphics/fb0/scaledown`"
+	sleep 1
+	echo $scale > /sys/class/graphics/fb1/scaledown
+	echo "set fb1 scale down = `cat /sys/class/graphics/fb1/scaledown`"
+	sleep 1
+	echo $scale > /sys/class/graphics/fb2/scaledown
+	echo "set fb2 scale down = `cat /sys/class/graphics/fb2/scaledown`"
+	sleep 1
+	echo $scale > /sys/class/graphics/fb3/scaledown
+	echo "set fb3 scale down = `cat /sys/class/graphics/fb3/scaledown`"
+	sleep 1
+done
+
 # disable pop
 echo 0 > /sys/devices/platform/ftlcdc200.0/pop
 echo "disable pop (`cat /sys/devices/platform/ftlcdc200.0/pop`)"
