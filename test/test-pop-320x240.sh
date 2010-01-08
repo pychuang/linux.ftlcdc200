@@ -8,7 +8,6 @@ mknod /dev/fb3 c 29 3
 echo pop = `cat /sys/devices/platform/ftlcdc200.0/pop`
 echo 1 > /sys/devices/platform/ftlcdc200.0/pop
 echo "enable pop (`cat /sys/devices/platform/ftlcdc200.0/pop`)"
-#sleep 2
 
 state=0
 for file in 565_160x120_patterns/*
@@ -38,3 +37,5 @@ done
 echo 0 > /sys/devices/platform/ftlcdc200.0/pop
 echo "disable pop (`cat /sys/devices/platform/ftlcdc200.0/pop`)"
 
+# clear background after test finished since fb0 are messed up by us
+cp /dev/zero /dev/fb0
