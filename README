@@ -12,9 +12,21 @@ static struct resource ftlcdc200_resources[] = {
 		.start	= LCDC_FTLCDC200_0_PA_BASE,
 		.end	= LCDC_FTLCDC200_0_PA_LIMIT,
 		.flags	= IORESOURCE_MEM,
-	}, {
+	}, {	/* bus error */
 		.start	= LCDC_FTLCDC200_0_IRQ0,
 		.end	= LCDC_FTLCDC200_0_IRQ0,
+		.flags	= IORESOURCE_IRQ,
+	}, {	/* FIFO underrun */
+		.start	= LCDC_FTLCDC200_0_IRQ1,
+		.end	= LCDC_FTLCDC200_0_IRQ1,
+		.flags	= IORESOURCE_IRQ,
+	}, {	/* base address update */
+		.start	= LCDC_FTLCDC200_0_IRQ2,
+		.end	= LCDC_FTLCDC200_0_IRQ2,
+		.flags	= IORESOURCE_IRQ,
+	}, {	/* vertical status */
+		.start	= LCDC_FTLCDC200_0_IRQ3,
+		.end	= LCDC_FTLCDC200_0_IRQ3,
 		.flags	= IORESOURCE_IRQ,
 	},
 };

@@ -55,7 +55,12 @@ struct ftlcdc200 {
 	struct resource *res;
 	struct device *dev;
 	void *base;
-	int irq;
+	int irq_be;	/* bus error */
+	int irq_ur;	/* FIFO underrun */
+	int irq_nb;	/* base address update */
+	int irq_vs;	/* vertical status */
+	int nb;		/* base updated */
+	wait_queue_head_t wait_nb;
 	struct ftlcdc200fb *fb[CONFIG_FTLCDC200_NR_FB];
 };
 
@@ -564,18 +569,19 @@ static irqreturn_t ftlcdc200_interrupt(int irq, void *dev_id)
 	if (status & FTLCDC200_INT_NEXT_BASE) {
 		if (printk_ratelimit())
 			dev_dbg(ftlcdc200->dev, "frame base updated\n");
+
+		ftlcdc200->nb = 1;
+		wake_up(&ftlcdc200->wait_nb);
 	}
 
 	if (status & FTLCDC200_INT_VSTATUS) {
 		if (printk_ratelimit())
 			dev_dbg(ftlcdc200->dev, "vertical duration reached \n");
-
 	}
 
 	if (status & FTLCDC200_INT_BUS_ERROR) {
 		if (printk_ratelimit())
 			dev_err(ftlcdc200->dev, "bus error!\n");
-
 	}
 
 	iowrite32(status, ftlcdc200->base + FTLCDC200_OFFSET_INT_CLEAR);
@@ -1124,7 +1130,10 @@ static int ftlcdc200_fb_pan_display(struct fb_var_screeninfo *var,
 	dma_addr = info->fix.smem_start + var->yoffset * info->fix.line_length;
 	value = FTLCDC200_FRAME_BASE(dma_addr);
 
+	ftlcdc200->nb = 0;
 	ftlcdc200fb->set_frame_base(ftlcdc200, value);
+	wait_event_timeout(ftlcdc200->wait_nb, ftlcdc200->nb, HZ / 10);
+
 	dev_dbg(info->device, "  [FRAME BASE] = %08x\n", value);
 	return 0;
 }
@@ -1738,7 +1747,10 @@ static int __init ftlcdc200_probe(struct platform_device *pdev)
 	struct ftlcdc200 *ftlcdc200;
 	struct resource *res;
 	unsigned int reg;
-	int irq;
+	int irq_be;
+	int irq_ur;
+	int irq_nb;
+	int irq_vs;
 	int ret;
 	int i;
 
@@ -1748,9 +1760,27 @@ static int __init ftlcdc200_probe(struct platform_device *pdev)
 		return -ENXIO;
 	}
 
-	irq = platform_get_irq(pdev, 0);
-	if (irq < 0) {
-		ret = irq;
+	irq_be = platform_get_irq(pdev, 0);
+	if (irq_be < 0) {
+		ret = irq_be;
+		goto err_get_irq;
+	}
+
+	irq_ur = platform_get_irq(pdev, 1);
+	if (irq_ur < 0) {
+		ret = irq_ur;
+		goto err_get_irq;
+	}
+
+	irq_nb = platform_get_irq(pdev, 2);
+	if (irq_nb < 0) {
+		ret = irq_nb;
+		goto err_get_irq;
+	}
+
+	irq_vs = platform_get_irq(pdev, 3);
+	if (irq_vs < 0) {
+		ret = irq_vs;
 		goto err_get_irq;
 	}
 
@@ -1763,6 +1793,8 @@ static int __init ftlcdc200_probe(struct platform_device *pdev)
 
 	platform_set_drvdata(pdev, ftlcdc200);
 	ftlcdc200->dev = dev;
+
+	init_waitqueue_head(&ftlcdc200->wait_nb);
 
 	/*
 	 * Map io memory
@@ -1790,18 +1822,40 @@ static int __init ftlcdc200_probe(struct platform_device *pdev)
 	/*
 	 * Register interrupt handler
 	 */
-	ret = request_irq(irq, ftlcdc200_interrupt, IRQF_SHARED, pdev->name, ftlcdc200);
+	ret = request_irq(irq_be, ftlcdc200_interrupt, IRQF_SHARED, pdev->name, ftlcdc200);
 	if (ret < 0) {
-		dev_err(dev, "Failed to request irq %d\n", irq);
-		goto err_req_irq;
+		dev_err(dev, "Failed to request irq %d\n", irq_be);
+		goto err_req_irq_be;
 	}
 
-	ftlcdc200->irq = irq;
+	ret = request_irq(irq_ur, ftlcdc200_interrupt, IRQF_SHARED, pdev->name, ftlcdc200);
+	if (ret < 0) {
+		dev_err(dev, "Failed to request irq %d\n", irq_ur);
+		goto err_req_irq_ur;
+	}
+
+	ret = request_irq(irq_nb, ftlcdc200_interrupt, IRQF_SHARED, pdev->name, ftlcdc200);
+	if (ret < 0) {
+		dev_err(dev, "Failed to request irq %d\n", irq_nb);
+		goto err_req_irq_nb;
+	}
+
+	ret = request_irq(irq_vs, ftlcdc200_interrupt, IRQF_SHARED, pdev->name, ftlcdc200);
+	if (ret < 0) {
+		dev_err(dev, "Failed to request irq %d\n", irq_vs);
+		goto err_req_irq_vs;
+	}
+
+	ftlcdc200->irq_be = irq_be;
+	ftlcdc200->irq_ur = irq_ur;
+	ftlcdc200->irq_nb = irq_nb;
+	ftlcdc200->irq_vs = irq_vs;
 
 	/*
 	 * Enable interrupts
 	 */
 	reg = FTLCDC200_INT_UNDERRUN
+	    | FTLCDC200_INT_NEXT_BASE
 	    | FTLCDC200_INT_BUS_ERROR;
 
 	iowrite32(reg, ftlcdc200->base + FTLCDC200_OFFSET_INT_ENABLE);
@@ -1834,7 +1888,6 @@ static int __init ftlcdc200_probe(struct platform_device *pdev)
 		}
 		goto err_sysfs;
 	}
-
 #endif
 
 	for (i = 0; i < CONFIG_FTLCDC200_NR_FB; i++) {
@@ -1857,8 +1910,14 @@ err_alloc_ftlcdc200fb:
 #if CONFIG_FTLCDC200_NR_FB > 1
 err_sysfs:
 #endif
-	free_irq(irq, ftlcdc200);
-err_req_irq:
+	free_irq(irq_vs, ftlcdc200);
+err_req_irq_vs:
+	free_irq(irq_nb, ftlcdc200);
+err_req_irq_nb:
+	free_irq(irq_ur, ftlcdc200);
+err_req_irq_ur:
+	free_irq(irq_be, ftlcdc200);
+err_req_irq_be:
 	iounmap(ftlcdc200->base);
 err_ioremap:
 err_req_mem_region:
@@ -1889,7 +1948,11 @@ static int __exit ftlcdc200_remove(struct platform_device *pdev)
 		device_remove_file(ftlcdc200->dev,
 			&ftlcdc200_device_attrs[i]);
 #endif
-	free_irq(ftlcdc200->irq, ftlcdc200);
+	free_irq(ftlcdc200->irq_vs, ftlcdc200);
+	free_irq(ftlcdc200->irq_nb, ftlcdc200);
+	free_irq(ftlcdc200->irq_ur, ftlcdc200);
+	free_irq(ftlcdc200->irq_be, ftlcdc200);
+
 	iounmap(ftlcdc200->base);
 	platform_set_drvdata(pdev, NULL);
 	release_resource(ftlcdc200->res);
