@@ -258,43 +258,43 @@ static void ftlcdc200_fb0_set_scale(struct ftlcdc200 *ftlcdc200, int scale)
 {
 	unsigned int reg;
 
-	reg = ioread32(ftlcdc200->base + FTLCDC200_OFFSET_SCALE);
-	reg &= ~FTLCDC200_SCALE_0_MASK;
+	reg = ioread32(ftlcdc200->base + FTLCDC200_OFFSET_POPSCALE);
+	reg &= ~FTLCDC200_POPSCALE_0_MASK;
 
 	switch (scale) {
 	case 0:
 		break;
 	case 1:
-		reg |= FTLCDC200_SCALE_0_QUARTER;
+		reg |= FTLCDC200_POPSCALE_0_QUARTER;
 		break;
 	case 2:
-		reg |= FTLCDC200_SCALE_0_HALF;
+		reg |= FTLCDC200_POPSCALE_0_HALF;
 		break;
 	default:
 		BUG();
 	}
 
-	dev_dbg(ftlcdc200->dev, "  [SCALE]      = %08x\n", reg);
-	iowrite32(reg, ftlcdc200->base + FTLCDC200_OFFSET_SCALE);
+	dev_dbg(ftlcdc200->dev, "  [POPSCALE]   = %08x\n", reg);
+	iowrite32(reg, ftlcdc200->base + FTLCDC200_OFFSET_POPSCALE);
 }
 
 static int ftlcdc200_fb0_get_scale(struct ftlcdc200 *ftlcdc200)
 {
 	unsigned int reg;
 
-	reg = ioread32(ftlcdc200->base + FTLCDC200_OFFSET_SCALE);
-	dev_dbg(ftlcdc200->dev, "  [SCALE]      = %08x\n", reg);
+	reg = ioread32(ftlcdc200->base + FTLCDC200_OFFSET_POPSCALE);
+	dev_dbg(ftlcdc200->dev, "  [POPSCALE]   = %08x\n", reg);
 
-	reg &= FTLCDC200_SCALE_0_MASK;
+	reg &= FTLCDC200_POPSCALE_0_MASK;
 
 	switch (reg) {
 	case 0:
 		return 0;
 
-	case FTLCDC200_SCALE_0_QUARTER:
+	case FTLCDC200_POPSCALE_0_QUARTER:
 		return 1;
 
-	case FTLCDC200_SCALE_0_HALF:
+	case FTLCDC200_POPSCALE_0_HALF:
 		return 2;
 
 	default:	/* impossible */
@@ -306,43 +306,43 @@ static void ftlcdc200_fb1_set_scale(struct ftlcdc200 *ftlcdc200, int scale)
 {
 	unsigned int reg;
 
-	reg = ioread32(ftlcdc200->base + FTLCDC200_OFFSET_SCALE);
-	reg &= ~FTLCDC200_SCALE_1_MASK;
+	reg = ioread32(ftlcdc200->base + FTLCDC200_OFFSET_POPSCALE);
+	reg &= ~FTLCDC200_POPSCALE_1_MASK;
 
 	switch (scale) {
 	case 0:
 		break;
 	case 1:
-		reg |= FTLCDC200_SCALE_1_QUARTER;
+		reg |= FTLCDC200_POPSCALE_1_QUARTER;
 		break;
 	case 2:
-		reg |= FTLCDC200_SCALE_1_HALF;
+		reg |= FTLCDC200_POPSCALE_1_HALF;
 		break;
 	default:
 		BUG();
 	}
 
-	dev_dbg(ftlcdc200->dev, "  [SCALE]      = %08x\n", reg);
-	iowrite32(reg, ftlcdc200->base + FTLCDC200_OFFSET_SCALE);
+	dev_dbg(ftlcdc200->dev, "  [POPSCALE]   = %08x\n", reg);
+	iowrite32(reg, ftlcdc200->base + FTLCDC200_OFFSET_POPSCALE);
 }
 
 static int ftlcdc200_fb1_get_scale(struct ftlcdc200 *ftlcdc200)
 {
 	unsigned int reg;
 
-	reg = ioread32(ftlcdc200->base + FTLCDC200_OFFSET_SCALE);
-	dev_dbg(ftlcdc200->dev, "  [SCALE]      = %08x\n", reg);
+	reg = ioread32(ftlcdc200->base + FTLCDC200_OFFSET_POPSCALE);
+	dev_dbg(ftlcdc200->dev, "  [POPSCALE]   = %08x\n", reg);
 
-	reg &= FTLCDC200_SCALE_1_MASK;
+	reg &= FTLCDC200_POPSCALE_1_MASK;
 
 	switch (reg) {
 	case 0:
 		return 0;
 
-	case FTLCDC200_SCALE_1_QUARTER:
+	case FTLCDC200_POPSCALE_1_QUARTER:
 		return 1;
 
-	case FTLCDC200_SCALE_1_HALF:
+	case FTLCDC200_POPSCALE_1_HALF:
 		return 2;
 
 	default:	/* impossible */
@@ -354,43 +354,43 @@ static void ftlcdc200_fb2_set_scale(struct ftlcdc200 *ftlcdc200, int scale)
 {
 	unsigned int reg;
 
-	reg = ioread32(ftlcdc200->base + FTLCDC200_OFFSET_SCALE);
-	reg &= ~FTLCDC200_SCALE_2_MASK;
+	reg = ioread32(ftlcdc200->base + FTLCDC200_OFFSET_POPSCALE);
+	reg &= ~FTLCDC200_POPSCALE_2_MASK;
 
 	switch (scale) {
 	case 0:
 		break;
 	case 1:
-		reg |= FTLCDC200_SCALE_2_QUARTER;
+		reg |= FTLCDC200_POPSCALE_2_QUARTER;
 		break;
 	case 2:
-		reg |= FTLCDC200_SCALE_2_HALF;
+		reg |= FTLCDC200_POPSCALE_2_HALF;
 		break;
 	default:
 		BUG();
 	}
 
-	dev_dbg(ftlcdc200->dev, "  [SCALE]      = %08x\n", reg);
-	iowrite32(reg, ftlcdc200->base + FTLCDC200_OFFSET_SCALE);
+	dev_dbg(ftlcdc200->dev, "  [POPSCALE]   = %08x\n", reg);
+	iowrite32(reg, ftlcdc200->base + FTLCDC200_OFFSET_POPSCALE);
 }
 
 static int ftlcdc200_fb2_get_scale(struct ftlcdc200 *ftlcdc200)
 {
 	unsigned int reg;
 
-	reg = ioread32(ftlcdc200->base + FTLCDC200_OFFSET_SCALE);
-	dev_dbg(ftlcdc200->dev, "  [SCALE]      = %08x\n", reg);
+	reg = ioread32(ftlcdc200->base + FTLCDC200_OFFSET_POPSCALE);
+	dev_dbg(ftlcdc200->dev, "  [POPSCALE]   = %08x\n", reg);
 
-	reg &= FTLCDC200_SCALE_2_MASK;
+	reg &= FTLCDC200_POPSCALE_2_MASK;
 
 	switch (reg) {
 	case 0:
 		return 0;
 
-	case FTLCDC200_SCALE_2_QUARTER:
+	case FTLCDC200_POPSCALE_2_QUARTER:
 		return 1;
 
-	case FTLCDC200_SCALE_2_HALF:
+	case FTLCDC200_POPSCALE_2_HALF:
 		return 2;
 
 	default:	/* impossible */
@@ -402,43 +402,43 @@ static void ftlcdc200_fb3_set_scale(struct ftlcdc200 *ftlcdc200, int scale)
 {
 	unsigned int reg;
 
-	reg = ioread32(ftlcdc200->base + FTLCDC200_OFFSET_SCALE);
-	reg &= ~FTLCDC200_SCALE_3_MASK;
+	reg = ioread32(ftlcdc200->base + FTLCDC200_OFFSET_POPSCALE);
+	reg &= ~FTLCDC200_POPSCALE_3_MASK;
 
 	switch (scale) {
 	case 0:
 		break;
 	case 1:
-		reg |= FTLCDC200_SCALE_3_QUARTER;
+		reg |= FTLCDC200_POPSCALE_3_QUARTER;
 		break;
 	case 2:
-		reg |= FTLCDC200_SCALE_3_HALF;
+		reg |= FTLCDC200_POPSCALE_3_HALF;
 		break;
 	default:
 		BUG();
 	}
 
-	dev_dbg(ftlcdc200->dev, "  [SCALE]      = %08x\n", reg);
-	iowrite32(reg, ftlcdc200->base + FTLCDC200_OFFSET_SCALE);
+	dev_dbg(ftlcdc200->dev, "  [POPSCALE]   = %08x\n", reg);
+	iowrite32(reg, ftlcdc200->base + FTLCDC200_OFFSET_POPSCALE);
 }
 
 static int ftlcdc200_fb3_get_scale(struct ftlcdc200 *ftlcdc200)
 {
 	unsigned int reg;
 
-	reg = ioread32(ftlcdc200->base + FTLCDC200_OFFSET_SCALE);
-	dev_dbg(ftlcdc200->dev, "  [SCALE]      = %08x\n", reg);
+	reg = ioread32(ftlcdc200->base + FTLCDC200_OFFSET_POPSCALE);
+	dev_dbg(ftlcdc200->dev, "  [POPSCALE]   = %08x\n", reg);
 
-	reg &= FTLCDC200_SCALE_3_MASK;
+	reg &= FTLCDC200_POPSCALE_3_MASK;
 
 	switch (reg) {
 	case 0:
 		return 0;
 
-	case FTLCDC200_SCALE_3_QUARTER:
+	case FTLCDC200_POPSCALE_3_QUARTER:
 		return 1;
 
-	case FTLCDC200_SCALE_3_HALF:
+	case FTLCDC200_POPSCALE_3_HALF:
 		return 2;
 
 	default:	/* impossible */

@@ -27,7 +27,7 @@
 #define FTLCDC200_OFFSET_INT_ENABLE	0x08
 #define FTLCDC200_OFFSET_INT_CLEAR	0x0c
 #define FTLCDC200_OFFSET_INT_STATUS	0x10
-#define FTLCDC200_OFFSET_SCALE		0x14
+#define FTLCDC200_OFFSET_POPSCALE	0x14
 #define FTLCDC200_OFFSET_FRAME_BASE0	0x18
 #define FTLCDC200_OFFSET_FRAME_BASE1	0x24
 #define FTLCDC200_OFFSET_FRAME_BASE2	0x30
@@ -168,18 +168,18 @@
 /*
  * Frame buffer
  */
-#define FTLCDC200_SCALE_0_MASK		(0x3 << 8)
-#define FTLCDC200_SCALE_0_QUARTER	(0x1 << 8)	/* 1/2 x 1/2 */
-#define FTLCDC200_SCALE_0_HALF		(0x2 << 8)	/* 1/2 x 1   */
-#define FTLCDC200_SCALE_1_MASK		(0x3 << 10)
-#define FTLCDC200_SCALE_1_QUARTER	(0x1 << 10)	/* 1/2 x 1/2 */
-#define FTLCDC200_SCALE_1_HALF		(0x2 << 10)	/* 1/2 x 1   */
-#define FTLCDC200_SCALE_2_MASK		(0x3 << 12)
-#define FTLCDC200_SCALE_2_QUARTER	(0x1 << 12)	/* 1/2 x 1/2 */
-#define FTLCDC200_SCALE_2_HALF		(0x2 << 12)	/* 1/2 x 1   */
-#define FTLCDC200_SCALE_3_MASK		(0x3 << 14)
-#define FTLCDC200_SCALE_3_QUARTER	(0x1 << 14)	/* 1/2 x 1/2 */
-#define FTLCDC200_SCALE_3_HALF		(0x2 << 14)	/* 1/2 x 1   */
+#define FTLCDC200_POPSCALE_0_MASK	(0x3 << 8)
+#define FTLCDC200_POPSCALE_0_QUARTER	(0x1 << 8)	/* 1/2 x 1/2 */
+#define FTLCDC200_POPSCALE_0_HALF	(0x2 << 8)	/* 1/2 x 1   */
+#define FTLCDC200_POPSCALE_1_MASK	(0x3 << 10)
+#define FTLCDC200_POPSCALE_1_QUARTER	(0x1 << 10)	/* 1/2 x 1/2 */
+#define FTLCDC200_POPSCALE_1_HALF	(0x2 << 10)	/* 1/2 x 1   */
+#define FTLCDC200_POPSCALE_2_MASK	(0x3 << 12)
+#define FTLCDC200_POPSCALE_2_QUARTER	(0x1 << 12)	/* 1/2 x 1/2 */
+#define FTLCDC200_POPSCALE_2_HALF	(0x2 << 12)	/* 1/2 x 1   */
+#define FTLCDC200_POPSCALE_3_MASK	(0x3 << 14)
+#define FTLCDC200_POPSCALE_3_QUARTER	(0x1 << 14)	/* 1/2 x 1/2 */
+#define FTLCDC200_POPSCALE_3_HALF	(0x2 << 14)	/* 1/2 x 1   */
 
 /*
  * LCD Panel Frame Base Address 0/1/2/3
