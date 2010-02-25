@@ -1184,7 +1184,7 @@ static struct fb_ops ftlcdc200_fb3_ops = {
 /******************************************************************************
  * struct device_attribute functions
  *
- * These functions handles files in
+ * These functions handle files in
  *	/sys/devices/platform/ftlcdc200.x/
  *****************************************************************************/
 #if CONFIG_FTLCDC200_NR_FB > 1
@@ -1372,7 +1372,7 @@ static struct device_attribute ftlcdc200_device_attrs[] = {
 /******************************************************************************
  * struct device_attribute functions
  *
- * These functions handles files in
+ * These functions handle files in
  *	/sys/class/graphics/fb0/
  *	/sys/class/graphics/fb1/
  *	/sys/class/graphics/fb2/
@@ -1422,7 +1422,7 @@ static struct device_attribute ftlcdc200_fb_device_attrs[] = {
 /******************************************************************************
  * struct device_attribute functions
  *
- * These functions handles files in
+ * These functions handle files in
  *	/sys/class/graphics/fb1/
  *	/sys/class/graphics/fb2/
  *****************************************************************************/
