@@ -75,8 +75,8 @@ struct ftlcdc200fb {
 	void (*get_position)(struct ftlcdc200 *ftlcdc200, int *x, int *y);
 
 	/* for pop */
-	void (*set_scale)(struct ftlcdc200 *ftlcdc200, int scale);
-	int (*get_scale)(struct ftlcdc200 *ftlcdc200);
+	void (*set_popscale)(struct ftlcdc200 *ftlcdc200, int scale);
+	int (*get_popscale)(struct ftlcdc200 *ftlcdc200);
 
 	/*
 	 * This pseudo_palette is used _only_ by fbcon, thus
@@ -254,7 +254,7 @@ static void ftlcdc200_fb2_set_dimension(struct ftlcdc200 *ftlcdc200,
 #endif
 
 #if CONFIG_FTLCDC200_NR_FB > 3
-static void ftlcdc200_fb0_set_scale(struct ftlcdc200 *ftlcdc200, int scale)
+static void ftlcdc200_fb0_set_popscale(struct ftlcdc200 *ftlcdc200, int scale)
 {
 	unsigned int reg;
 
@@ -278,7 +278,7 @@ static void ftlcdc200_fb0_set_scale(struct ftlcdc200 *ftlcdc200, int scale)
 	iowrite32(reg, ftlcdc200->base + FTLCDC200_OFFSET_POPSCALE);
 }
 
-static int ftlcdc200_fb0_get_scale(struct ftlcdc200 *ftlcdc200)
+static int ftlcdc200_fb0_get_popscale(struct ftlcdc200 *ftlcdc200)
 {
 	unsigned int reg;
 
@@ -302,7 +302,7 @@ static int ftlcdc200_fb0_get_scale(struct ftlcdc200 *ftlcdc200)
 	}
 }
 
-static void ftlcdc200_fb1_set_scale(struct ftlcdc200 *ftlcdc200, int scale)
+static void ftlcdc200_fb1_set_popscale(struct ftlcdc200 *ftlcdc200, int scale)
 {
 	unsigned int reg;
 
@@ -326,7 +326,7 @@ static void ftlcdc200_fb1_set_scale(struct ftlcdc200 *ftlcdc200, int scale)
 	iowrite32(reg, ftlcdc200->base + FTLCDC200_OFFSET_POPSCALE);
 }
 
-static int ftlcdc200_fb1_get_scale(struct ftlcdc200 *ftlcdc200)
+static int ftlcdc200_fb1_get_popscale(struct ftlcdc200 *ftlcdc200)
 {
 	unsigned int reg;
 
@@ -350,7 +350,7 @@ static int ftlcdc200_fb1_get_scale(struct ftlcdc200 *ftlcdc200)
 	}
 }
 
-static void ftlcdc200_fb2_set_scale(struct ftlcdc200 *ftlcdc200, int scale)
+static void ftlcdc200_fb2_set_popscale(struct ftlcdc200 *ftlcdc200, int scale)
 {
 	unsigned int reg;
 
@@ -374,7 +374,7 @@ static void ftlcdc200_fb2_set_scale(struct ftlcdc200 *ftlcdc200, int scale)
 	iowrite32(reg, ftlcdc200->base + FTLCDC200_OFFSET_POPSCALE);
 }
 
-static int ftlcdc200_fb2_get_scale(struct ftlcdc200 *ftlcdc200)
+static int ftlcdc200_fb2_get_popscale(struct ftlcdc200 *ftlcdc200)
 {
 	unsigned int reg;
 
@@ -398,7 +398,7 @@ static int ftlcdc200_fb2_get_scale(struct ftlcdc200 *ftlcdc200)
 	}
 }
 
-static void ftlcdc200_fb3_set_scale(struct ftlcdc200 *ftlcdc200, int scale)
+static void ftlcdc200_fb3_set_popscale(struct ftlcdc200 *ftlcdc200, int scale)
 {
 	unsigned int reg;
 
@@ -422,7 +422,7 @@ static void ftlcdc200_fb3_set_scale(struct ftlcdc200 *ftlcdc200, int scale)
 	iowrite32(reg, ftlcdc200->base + FTLCDC200_OFFSET_POPSCALE);
 }
 
-static int ftlcdc200_fb3_get_scale(struct ftlcdc200 *ftlcdc200)
+static int ftlcdc200_fb3_get_popscale(struct ftlcdc200 *ftlcdc200)
 {
 	unsigned int reg;
 
@@ -1382,7 +1382,7 @@ static struct device_attribute ftlcdc200_device_attrs[] = {
  *	/sys/class/graphics/fb3/
  *****************************************************************************/
 #if CONFIG_FTLCDC200_NR_FB > 3
-static ssize_t ftlcdc200_show_scale(struct device *device,
+static ssize_t ftlcdc200_show_popscale(struct device *device,
 		struct device_attribute *attr, char *buf)
 {
 	struct fb_info *info = dev_get_drvdata(device);
@@ -1392,12 +1392,12 @@ static ssize_t ftlcdc200_show_scale(struct device *device,
 
 	dev_dbg(ftlcdc200->dev, "%s\n", __func__);
 
-	scale = ftlcdc200fb->get_scale(ftlcdc200);
+	scale = ftlcdc200fb->get_popscale(ftlcdc200);
 
 	return snprintf(buf, PAGE_SIZE, "%d\n", scale);
 }
 
-static ssize_t ftlcdc200_store_scale(struct device *device,
+static ssize_t ftlcdc200_store_popscale(struct device *device,
 		struct device_attribute *attr, const char *buf, size_t count)
 {
 	struct fb_info *info = dev_get_drvdata(device);
@@ -1412,13 +1412,13 @@ static ssize_t ftlcdc200_store_scale(struct device *device,
 	if (scale > 2)
 		return -EINVAL;
 
-	ftlcdc200fb->set_scale(ftlcdc200, scale);
+	ftlcdc200fb->set_popscale(ftlcdc200, scale);
 
 	return count;
 }
 
 static struct device_attribute ftlcdc200_fb_device_attrs[] = {
-	__ATTR(scaledown, S_IRUGO|S_IWUSR, ftlcdc200_show_scale, ftlcdc200_store_scale),
+	__ATTR(scaledown, S_IRUGO|S_IWUSR, ftlcdc200_show_popscale, ftlcdc200_store_popscale),
 };
 #endif
 
@@ -1513,8 +1513,8 @@ static int __init ftlcdc200_alloc_ftlcdc200fb(struct ftlcdc200 *ftlcdc200, int n
 		info->fbops = &ftlcdc200_fb0_ops;
 		ftlcdc200fb->set_frame_base = ftlcdc200_fb0_set_frame_base;
 #if CONFIG_FTLCDC200_NR_FB > 3
-		ftlcdc200fb->set_scale = ftlcdc200_fb0_set_scale;
-		ftlcdc200fb->get_scale = ftlcdc200_fb0_get_scale;
+		ftlcdc200fb->set_popscale = ftlcdc200_fb0_set_popscale;
+		ftlcdc200fb->get_popscale = ftlcdc200_fb0_get_popscale;
 #endif
 		break;
 #if CONFIG_FTLCDC200_NR_FB > 1
@@ -1525,8 +1525,8 @@ static int __init ftlcdc200_alloc_ftlcdc200fb(struct ftlcdc200 *ftlcdc200, int n
 		ftlcdc200fb->set_position = ftlcdc200_fb1_set_position;
 		ftlcdc200fb->get_position = ftlcdc200_fb1_get_position;
 #if CONFIG_FTLCDC200_NR_FB > 3
-		ftlcdc200fb->set_scale = ftlcdc200_fb1_set_scale;
-		ftlcdc200fb->get_scale = ftlcdc200_fb1_get_scale;
+		ftlcdc200fb->set_popscale = ftlcdc200_fb1_set_popscale;
+		ftlcdc200fb->get_popscale = ftlcdc200_fb1_get_popscale;
 #endif
 
 		ftlcdc200fb->set_position(ftlcdc200, 0, 0);
@@ -1541,8 +1541,8 @@ static int __init ftlcdc200_alloc_ftlcdc200fb(struct ftlcdc200 *ftlcdc200, int n
 		ftlcdc200fb->set_position = ftlcdc200_fb2_set_position;
 		ftlcdc200fb->get_position = ftlcdc200_fb2_get_position;
 #if CONFIG_FTLCDC200_NR_FB > 3
-		ftlcdc200fb->set_scale = ftlcdc200_fb2_set_scale;
-		ftlcdc200fb->get_scale = ftlcdc200_fb2_get_scale;
+		ftlcdc200fb->set_popscale = ftlcdc200_fb2_set_popscale;
+		ftlcdc200fb->get_popscale = ftlcdc200_fb2_get_popscale;
 #endif
 
 		ftlcdc200fb->set_position(ftlcdc200, 0, 0);
@@ -1553,8 +1553,8 @@ static int __init ftlcdc200_alloc_ftlcdc200fb(struct ftlcdc200 *ftlcdc200, int n
 	case 3:
 		info->fbops = &ftlcdc200_fb3_ops;
 		ftlcdc200fb->set_frame_base = ftlcdc200_fb3_set_frame_base;
-		ftlcdc200fb->set_scale = ftlcdc200_fb3_set_scale;
-		ftlcdc200fb->get_scale = ftlcdc200_fb3_get_scale;
+		ftlcdc200fb->set_popscale = ftlcdc200_fb3_set_popscale;
+		ftlcdc200fb->get_popscale = ftlcdc200_fb3_get_popscale;
 		break;
 #endif
 	default:
