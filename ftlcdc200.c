@@ -739,14 +739,17 @@ static int ftlcdc200_fb1_check_var(struct fb_var_screeninfo *var,
 	 * The resolution of sub image should not be larger than the physical
 	 * resolution (the resolution of fb[0]).
 	 */
-	if (var->xres_virtual > ftlcdc200->fb[0]->info->var.xres)
+	if (var->xres > ftlcdc200->fb[0]->info->var.xres)
 		return -EINVAL;
 
-	if (var->yres_virtual > ftlcdc200->fb[0]->info->var.yres)
+	if (var->yres > ftlcdc200->fb[0]->info->var.yres)
 		return -EINVAL;
 
-	var->xres = var->xres_virtual;
-	var->yres = var->yres_virtual;
+	if (var->xres_virtual != var->xres)
+		return -EINVAL;
+
+	if (var->yres_virtual < var->yres)
+		return -EINVAL;
 
 	ret = ftlcdc200_grow_framebuffer(info, var);
 	if (ret)

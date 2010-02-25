@@ -1,3 +1,9 @@
+# this test needs fbset tool
+FBSET=`which fbset`
+test -z $FBSET && echo please enable fbset of busybox && exit 1
+test ! -f $FBSET && echo please enable fbset of busybox && exit 1
+test ! -x $FBSET && echo please enable fbset of busybox && exit 1
+
 # in case we forgot to create device files
 mknod /dev/fb0 c 29 0
 mknod /dev/fb1 c 29 1
@@ -12,13 +18,13 @@ cp 565_320x240_patterns/01_565_320x240.bmp.bin /dev/fb0
 cp 565_80x80_patterns/10_565_80x80.bmp.bin /dev/fb1
 
 # setup image size
-echo 80,80 > /sys/class/graphics/fb1/virtual_size
+fbset -fb /dev/fb1 -g 80 80 80 160 16 -n
 
 # prepare image 2
 cp 565_80x80_patterns/11_565_80x80.bmp.bin /dev/fb2
 
 # setup image size
-echo 80,80 > /sys/class/graphics/fb2/virtual_size
+fbset -fb /dev/fb2 -g 80 80 80 160 16 -n
 
 # enable single pip
 echo pip = `cat /sys/devices/platform/ftlcdc200.0/pip`
@@ -59,6 +65,15 @@ do
 	sleep 1
 	echo $i > /sys/devices/platform/ftlcdc200.0/blend2
 	echo set blend2 to `cat /sys/devices/platform/ftlcdc200.0/blend2`
+done
+
+# pan sub images
+for yoffset in 0 20 40 60 80 0
+do
+	echo "0,$yoffset" > /sys/class/graphics/fb1/pan
+	sleep 1
+	echo "0,$yoffset" > /sys/class/graphics/fb2/pan
+	sleep 1
 done
 
 # disable double pip
