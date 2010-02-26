@@ -58,11 +58,11 @@
 #define FTLCDC200_OFFSET_SCALE_IN_VRES	0x1104
 #define FTLCDC200_OFFSET_SCALE_OUT_HRES	0x1108
 #define FTLCDC200_OFFSET_SCALE_OUT_VRES	0x110c
-#define FTLCDC200_OFFSET_MISC_CTRL	0x1110
-#define FTLCDC200_OFFSET_HHT		0x1114
-#define FTLCDC200_OFFSET_HLT		0x1118
-#define FTLCDC200_OFFSET_VHT		0x111c
-#define FTLCDC200_OFFSET_VLT		0x1120
+#define FTLCDC200_OFFSET_SCALE_CTRL	0x1110
+#define FTLCDC200_OFFSET_SCALE_HHT	0x1114
+#define FTLCDC200_OFFSET_SCALE_HLT	0x1118
+#define FTLCDC200_OFFSET_SCALE_VHT	0x111c
+#define FTLCDC200_OFFSET_SCALE_VLT	0x1120
 #define FTLCDC200_OFFSET_SCALE_PAR	0x112c
 #ifdef	CONFIG_FTLCDC200_COMPLEX_OSD
 /*
@@ -311,6 +311,31 @@
 #define FTLCDC200_CM3_CONTRAST_OFFSET(x)	(((x) & 0xfff) << 0)
 #define FTLCDC200_CM3_CONTRAST_NEGATIVE		(1 << 12)
 #define FTLCDC200_CM3_CONTRAST_SLOPE(x)		(((x) & 0x1f) << 16)
+
+/*
+ * Scale Input Horizontal Resolution
+ */
+#define FTLCDC200_SCALE_IN_HRES_MASK	0xfff
+
+/*
+ * Scale Input Vertical Resolution
+ */
+#define FTLCDC200_SCALE_IN_VRES_MASK	0xfff
+
+/*
+ * Scale Output Horizontal Resolution
+ */
+#define FTLCDC200_SCALE_OUT_HRES_MASK	0x3fff
+
+/*
+ * Scale Output Vertical Resolution
+ */
+#define FTLCDC200_SCALE_OUT_VRES_MASK	0x3fff
+
+/*
+ * Scale Resolution Parameters
+ */
+#define FTLCDC200_SCALE_PAR(h, v)	(((v) & 0xff) | (((h) & 0xff) << 8))
 
 #ifdef	CONFIG_FTLCDC200_COMPLEX_OSD
 
