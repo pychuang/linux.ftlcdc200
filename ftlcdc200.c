@@ -1653,6 +1653,14 @@ static struct device_attribute ftlcdc200_device_attrs[] = {
  *	/sys/class/graphics/fb2/
  *	/sys/class/graphics/fb3/
  *****************************************************************************/
+static ssize_t ftlcdc200_show_smem_start(struct device *device,
+		struct device_attribute *attr, char *buf)
+{
+	struct fb_info *info = dev_get_drvdata(device);
+
+	return snprintf(buf, PAGE_SIZE, "%08lx\n", info->fix.smem_start);
+}
+
 #if CONFIG_FTLCDC200_NR_FB > 3
 static ssize_t ftlcdc200_show_popscale(struct device *device,
 		struct device_attribute *attr, char *buf)
@@ -1688,11 +1696,14 @@ static ssize_t ftlcdc200_store_popscale(struct device *device,
 
 	return count;
 }
+#endif
 
 static struct device_attribute ftlcdc200_fb_device_attrs[] = {
+	__ATTR(smem_start, S_IRUGO, ftlcdc200_show_smem_start, NULL),
+#if CONFIG_FTLCDC200_NR_FB > 3
 	__ATTR(scaledown, S_IRUGO|S_IWUSR, ftlcdc200_show_popscale, ftlcdc200_store_popscale),
-};
 #endif
+};
 
 /******************************************************************************
  * struct device_attribute functions
@@ -1752,9 +1763,7 @@ static int __init ftlcdc200_alloc_ftlcdc200fb(struct ftlcdc200 *ftlcdc200, int n
 	struct ftlcdc200fb *ftlcdc200fb;
 	struct fb_info *info;
 	int ret;
-#if CONFIG_FTLCDC200_NR_FB > 1
 	int i;
-#endif
 
 	dev_dbg(dev, "%s\n", __func__);
 	/*
@@ -1887,7 +1896,6 @@ static int __init ftlcdc200_alloc_ftlcdc200fb(struct ftlcdc200 *ftlcdc200, int n
 		goto err_register_info;
 	}
 
-#if CONFIG_FTLCDC200_NR_FB > 3
 	/*
 	 * create files in /sys/class/graphics/fbx/
 	 */
@@ -1907,7 +1915,6 @@ static int __init ftlcdc200_alloc_ftlcdc200fb(struct ftlcdc200 *ftlcdc200, int n
 		}
 		goto err_sysfs1;
 	}
-#endif
 
 	switch (nr) {
 	case 0:
@@ -1958,14 +1965,12 @@ static int __init ftlcdc200_alloc_ftlcdc200fb(struct ftlcdc200 *ftlcdc200, int n
 
 #if CONFIG_FTLCDC200_NR_FB > 1
 err_sysfs2:
-#if CONFIG_FTLCDC200_NR_FB > 3
+#endif
 	for (i = 0; ARRAY_SIZE(ftlcdc200_fb_device_attrs); i++)
 		device_remove_file(info->dev,
 			&ftlcdc200_fb_device_attrs[i]);
 err_sysfs1:
-#endif
 	unregister_framebuffer(info);
-#endif
 err_register_info:
 err_check_var:
 	if (info->screen_base) {
