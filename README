@@ -214,3 +214,25 @@ determine the scale down factor of each image when pop enabled
 * change the setting
 $ echo 1 > /sys/class/graphics/fb0/scaledown
 
+******************************************************************************
+Zoom (Scaler) HOWTO:
+
+fb4 is a framebuffer device that the image drawn on it will be scaled to
+the physical resolution of the screen.
+
+By default, the content of fb4 is not display unless you enable zoom function.
+If zoom enabled, the content of fb4 is displayed instead of the content of fb0.
+
+/sys/devices/platform/ftlcdc200.0/zoom controls the zoom function
+	0: zoom disabled
+	1: zoom enabled
+
+* check the current setting
+
+$ cat /sys/devices/platform/ftlcdc200.0/zoom
+0
+
+* change the setting (e.g. enable zoom)
+
+echo 1 > /sys/devices/platform/ftlcdc200.0/zoom
+
