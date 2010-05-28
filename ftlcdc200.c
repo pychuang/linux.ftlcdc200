@@ -131,7 +131,7 @@ static struct fb_var_screeninfo ftlcdc200_default_var __devinitdata = {
 	.xres_virtual	= 800,
 	.yres_virtual	= 480,
 	.bits_per_pixel	= 16,
-	.pixclock	= 41521,
+	.pixclock	= 45521,
 	.left_margin	= 1,
 	.right_margin	= 44,
 	.upper_margin	= 1,
@@ -661,6 +661,10 @@ static int ftlcdc200_fb0_check_var(struct fb_var_screeninfo *var,
 	int ret;
 
 	clk_value_khz = LC_CLK / 1000;
+#ifdef CONFIG_FTLCDC200_SERIAL
+	/* In serial mode, 3 clocks are used to send a pixel */
+	clk_value_khz /= 3;
+#endif
 
 	dev_dbg(dev, "fb%d: %s:\n", info->node, __func__);
 
@@ -956,6 +960,10 @@ static int ftlcdc200_fb0_set_par(struct fb_info *info)
 	 */
 	clk_value_khz = LC_CLK / 1000;
 
+#ifdef CONFIG_FTLCDC200_SERIAL
+	/* In serial mode, 3 clocks are used to send a pixel */
+	clk_value_khz /= 3;
+#endif
 	divno = DIV_ROUND_UP(clk_value_khz, PICOS2KHZ(info->var.pixclock));
 	if (divno == 0) {
 		dev_err(info->device,
