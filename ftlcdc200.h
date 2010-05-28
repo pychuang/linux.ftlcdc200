@@ -118,7 +118,7 @@
 #define FTLCDC200_CTRL_YUV420		(1 << 2)
 #define FTLCDC200_CTRL_YUV		(1 << 3)
 #define FTLCDC200_CTRL_OSD		(1 << 4)
-#define FTLCDC200_CTRL_SCALAR		(1 << 5)
+#define FTLCDC200_CTRL_SCALER		(1 << 5)
 #define FTLCDC200_CTRL_DITHER		(1 << 6)
 #define FTLCDC200_CTRL_POP		(1 << 7)
 #define FTLCDC200_CTRL_BLEND		(1 << 8)
