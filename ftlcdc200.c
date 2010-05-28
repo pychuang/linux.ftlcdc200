@@ -1616,7 +1616,17 @@ static ssize_t ftlcdc200_store_zoom(struct device *device,
 		ftlcdc200->fb[0]->set_frame_base = ftlcdc200_dont_set_frame_base;
 		ftlcdc200->fb[4]->set_frame_base = ftlcdc200_fb4_set_frame_base;
 
-		ctrl |= FTLCDC200_CTRL_SCALER;
+		/*
+		 * Hardware pitfall:
+		 * We should disable controller before enable scaler,
+		 * or scaler function may dead after several times of
+		 * turning on/off.
+		 */
+		ctrl &= ~FTLCDC200_CTRL_ENABLE;
+		dev_dbg(ftlcdc200->dev, "  [CTRL]       = %08x\n", ctrl);
+		iowrite32(ctrl, ftlcdc200->base + FTLCDC200_OFFSET_CTRL);
+
+		ctrl |= FTLCDC200_CTRL_ENABLE | FTLCDC200_CTRL_SCALER;
 
 		base = FTLCDC200_FRAME_BASE(ftlcdc200->fb[4]->info->fix.smem_start);
 		ftlcdc200_fb4_set_frame_base(ftlcdc200, base);
