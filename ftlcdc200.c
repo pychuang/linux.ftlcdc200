@@ -186,13 +186,6 @@ static void ftlcdc200_dont_set_frame_base(struct ftlcdc200 *ftlcdc200,
 		unsigned int value)
 {
 }
-
-static void ftlcdc200_fb4_set_frame_base(struct ftlcdc200 *ftlcdc200,
-		unsigned int value)
-{
-	iowrite32(value, ftlcdc200->base + FTLCDC200_OFFSET_FRAME_BASE0);
-	dev_dbg(ftlcdc200->dev, "  [FRAME BASE] = %08x\n", value);
-}
 #endif
 
 #if CONFIG_FTLCDC200_NR_FB > 1
@@ -1616,13 +1609,13 @@ static ssize_t ftlcdc200_store_zoom(struct device *device,
 		ctrl &= ~FTLCDC200_CTRL_SCALER;
 
 		base = FTLCDC200_FRAME_BASE(ftlcdc200->fb[0]->info->fix.smem_start);
-		ftlcdc200_fb4_set_frame_base(ftlcdc200, base);
+		ftlcdc200_fb0_set_frame_base(ftlcdc200, base);
 	} else {
 		if (ctrl & FTLCDC200_CTRL_SCALER)
 			goto out;
 
 		ftlcdc200->fb[0]->set_frame_base = ftlcdc200_dont_set_frame_base;
-		ftlcdc200->fb[4]->set_frame_base = ftlcdc200_fb4_set_frame_base;
+		ftlcdc200->fb[4]->set_frame_base = ftlcdc200_fb0_set_frame_base;
 
 		/*
 		 * Hardware pitfall:
@@ -1637,7 +1630,7 @@ static ssize_t ftlcdc200_store_zoom(struct device *device,
 		ctrl |= FTLCDC200_CTRL_ENABLE | FTLCDC200_CTRL_SCALER;
 
 		base = FTLCDC200_FRAME_BASE(ftlcdc200->fb[4]->info->fix.smem_start);
-		ftlcdc200_fb4_set_frame_base(ftlcdc200, base);
+		ftlcdc200_fb0_set_frame_base(ftlcdc200, base);
 	}
 
 	dev_dbg(ftlcdc200->dev, "  [CTRL]       = %08x\n", ctrl);
