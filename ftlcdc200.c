@@ -679,8 +679,7 @@ static int ftlcdc200_fb0_check_var(struct fb_var_screeninfo *var,
 	dev_dbg(dev, "  hsync:        %u\n", var->hsync_len);
 	dev_dbg(dev, "  vsync:        %u\n", var->vsync_len);
 
-	if (PICOS2KHZ(var->pixclock) * DIV_ROUND_UP(var->bits_per_pixel, 8)
-			> clk_value_khz) {
+	if (PICOS2KHZ(var->pixclock) > clk_value_khz) {
 		dev_err(dev, "%lu KHz pixel clock is too fast\n",
 			PICOS2KHZ(var->pixclock));
 		return -EINVAL;
