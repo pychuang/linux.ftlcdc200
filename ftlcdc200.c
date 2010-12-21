@@ -2230,6 +2230,7 @@ err_req_irq_be:
 err_ioremap:
 err_req_mem_region:
 	platform_set_drvdata(pdev, NULL);
+	kfree(ftlcdc200);
 err_alloc_ftlcdc200:
 err_get_irq:
 	release_resource(res);
@@ -2265,6 +2266,7 @@ static int __devexit ftlcdc200_remove(struct platform_device *pdev)
 	iounmap(ftlcdc200->base);
 	platform_set_drvdata(pdev, NULL);
 	release_resource(ftlcdc200->res);
+	kfree(ftlcdc200);
 
 	return 0;
 }
