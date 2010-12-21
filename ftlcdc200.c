@@ -19,6 +19,7 @@
  * Foundation, Inc., 675 Mass Ave, Cambridge, MA 02139, USA.
  */
 
+#include <linux/clk.h>
 #include <linux/kernel.h>
 #include <linux/platform_device.h>
 #include <linux/dma-mapping.h>
@@ -27,14 +28,6 @@
 #include <linux/init.h>
 
 #include "ftlcdc200.h"
-
-/*
- * LC_CLK on A369 depends on the SCLK_CFG0 register of FTSCU010
- *	00: AHB clock
- *	01: APB clock
- *	10: external clock
- */
-#define LC_CLK	AHB_CLK_IN
 
 /*
  * Select a panel configuration
@@ -61,6 +54,8 @@ struct ftlcdc200 {
 	int irq_vs;	/* vertical status */
 	int nb;		/* base updated */
 	wait_queue_head_t wait_nb;
+	struct clk *clk;
+	unsigned long clk_value_khz;
 	struct ftlcdc200fb *fb[CONFIG_FTLCDC200_NR_FB];
 };
 
@@ -650,14 +645,10 @@ static int ftlcdc200_fb0_check_var(struct fb_var_screeninfo *var,
 		struct fb_info *info)
 {
 	struct device *dev = info->device;
-	unsigned long clk_value_khz;
+	struct ftlcdc200fb *ftlcdc200fb = info->par;
+	struct ftlcdc200 *ftlcdc200 = ftlcdc200fb->ftlcdc200;
+	unsigned long clk_value_khz = ftlcdc200->clk_value_khz;
 	int ret;
-
-	clk_value_khz = LC_CLK / 1000;
-#ifdef CONFIG_FTLCDC200_SERIAL
-	/* In serial mode, 3 clocks are used to send a pixel */
-	clk_value_khz /= 3;
-#endif
 
 	dev_dbg(dev, "fb%d: %s:\n", info->node, __func__);
 
@@ -925,7 +916,7 @@ static int ftlcdc200_fb0_set_par(struct fb_info *info)
 {
 	struct ftlcdc200fb *ftlcdc200fb = info->par;
 	struct ftlcdc200 *ftlcdc200 = ftlcdc200fb->ftlcdc200;
-	unsigned long clk_value_khz;
+	unsigned long clk_value_khz = ftlcdc200->clk_value_khz;
 	unsigned int divno;
 	unsigned int reg;
 
@@ -950,12 +941,6 @@ static int ftlcdc200_fb0_set_par(struct fb_info *info)
 	/*
 	 * polarity control
 	 */
-	clk_value_khz = LC_CLK / 1000;
-
-#ifdef CONFIG_FTLCDC200_SERIAL
-	/* In serial mode, 3 clocks are used to send a pixel */
-	clk_value_khz /= 3;
-#endif
 	divno = DIV_ROUND_UP(clk_value_khz, PICOS2KHZ(info->var.pixclock));
 	if (divno == 0) {
 		dev_err(info->device,
@@ -2054,6 +2039,7 @@ static int __devinit ftlcdc200_probe(struct platform_device *pdev)
 	struct device *dev = &pdev->dev;
 	struct ftlcdc200 *ftlcdc200;
 	struct resource *res;
+	struct clk *clk;
 	unsigned int reg;
 	int irq_be;
 	int irq_ur;
@@ -2103,6 +2089,21 @@ static int __devinit ftlcdc200_probe(struct platform_device *pdev)
 	ftlcdc200->dev = dev;
 
 	init_waitqueue_head(&ftlcdc200->wait_nb);
+
+	clk = clk_get(NULL, "hclk");
+	if (IS_ERR(clk)) {
+		dev_err(dev, "Failed to get clock\n");
+		ret = PTR_ERR(clk);
+		goto err_clk_get;
+	}
+
+	clk_enable(clk);
+	ftlcdc200->clk = clk;
+	ftlcdc200->clk_value_khz = clk_get_rate(clk) / 1000;
+#ifdef CONFIG_FTLCDC200_SERIAL
+	/* In serial mode, 3 clocks are used to send a pixel */
+	ftlcdc200->clk_value_khz /= 3;
+#endif
 
 	/*
 	 * Map io memory
@@ -2229,6 +2230,8 @@ err_req_irq_be:
 	iounmap(ftlcdc200->base);
 err_ioremap:
 err_req_mem_region:
+	clk_put(clk);
+err_clk_get:
 	platform_set_drvdata(pdev, NULL);
 	kfree(ftlcdc200);
 err_alloc_ftlcdc200:
@@ -2264,6 +2267,7 @@ static int __devexit ftlcdc200_remove(struct platform_device *pdev)
 	free_irq(ftlcdc200->irq_be, ftlcdc200);
 
 	iounmap(ftlcdc200->base);
+	clk_put(ftlcdc200->clk);
 	platform_set_drvdata(pdev, NULL);
 	release_resource(ftlcdc200->res);
 	kfree(ftlcdc200);
