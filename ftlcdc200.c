@@ -1767,7 +1767,7 @@ static struct device_attribute ftlcdc200_fb1_device_attrs[] = {
 /******************************************************************************
  * internal functions - struct ftlcdc200fb
  *****************************************************************************/
-static int __init ftlcdc200_alloc_ftlcdc200fb(struct ftlcdc200 *ftlcdc200, int nr)
+static int __devinit ftlcdc200_alloc_ftlcdc200fb(struct ftlcdc200 *ftlcdc200, int nr)
 {
 	struct device *dev = ftlcdc200->dev;
 	struct ftlcdc200fb *ftlcdc200fb;
@@ -2049,7 +2049,7 @@ static void ftlcdc200_free_ftlcdc200fb(struct ftlcdc200fb *ftlcdc200fb, int nr)
 /******************************************************************************
  * struct platform_driver functions
  *****************************************************************************/
-static int __init ftlcdc200_probe(struct platform_device *pdev)
+static int __devinit ftlcdc200_probe(struct platform_device *pdev)
 {
 	struct device *dev = &pdev->dev;
 	struct ftlcdc200 *ftlcdc200;
@@ -2236,7 +2236,7 @@ err_get_irq:
 	return ret;
 }
 
-static int __exit ftlcdc200_remove(struct platform_device *pdev)
+static int __devexit ftlcdc200_remove(struct platform_device *pdev)
 {
 	struct ftlcdc200 *ftlcdc200;
 	int i;
@@ -2271,7 +2271,7 @@ static int __exit ftlcdc200_remove(struct platform_device *pdev)
 
 static struct platform_driver ftlcdc200_driver = {
 	.probe		= ftlcdc200_probe,
-	.remove		= __exit_p(ftlcdc200_remove),
+	.remove		= __devexit_p(ftlcdc200_remove),
 
 	.driver		= {
 		.name	= "ftlcdc200",
