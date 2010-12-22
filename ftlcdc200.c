@@ -480,7 +480,7 @@ static int ftlcdc200_grow_framebuffer(struct fb_info *info,
 	/*
 	 * Allocate bigger framebuffer
 	 */
-	screen_base = dma_alloc_writecombine(NULL, smem_len,
+	screen_base = dma_alloc_writecombine(dev, smem_len,
 				(dma_addr_t *)&smem_start,
 				GFP_KERNEL | GFP_DMA);
 
@@ -500,7 +500,7 @@ static int ftlcdc200_grow_framebuffer(struct fb_info *info,
 	 * Free current framebuffer (if any)
 	 */
 	if (info->screen_base) {
-		dma_free_writecombine(NULL, info->fix.smem_len,
+		dma_free_writecombine(dev, info->fix.smem_len,
 			info->screen_base, (dma_addr_t )info->fix.smem_start);
 	}
 
@@ -1969,7 +1969,7 @@ err_sysfs1:
 err_register_info:
 err_check_var:
 	if (info->screen_base) {
-		dma_free_writecombine(NULL, info->fix.smem_len, info->screen_base,
+		dma_free_writecombine(dev, info->fix.smem_len, info->screen_base,
 				(dma_addr_t )info->fix.smem_start);
 	}
 
@@ -2024,7 +2024,7 @@ static void ftlcdc200_free_ftlcdc200fb(struct ftlcdc200fb *ftlcdc200fb, int nr)
 #endif
 
 	unregister_framebuffer(info);
-	dma_free_writecombine(NULL, info->fix.smem_len, info->screen_base,
+	dma_free_writecombine(dev, info->fix.smem_len, info->screen_base,
 				(dma_addr_t )info->fix.smem_start);
 
 	fb_dealloc_cmap(&info->cmap);
