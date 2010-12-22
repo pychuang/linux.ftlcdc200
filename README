@@ -9,24 +9,20 @@ Usage:
 ------------------------>8-------------------------->8------------------------
 static struct resource ftlcdc200_resources[] = {
 	{
-		.start	= LCDC_FTLCDC200_0_PA_BASE,
-		.end	= LCDC_FTLCDC200_0_PA_LIMIT,
+		.start	= A369_FTLCDC200_0_PA_BASE,
+		.end	= A369_FTLCDC200_0_PA_BASE + SZ_64K - 1,
 		.flags	= IORESOURCE_MEM,
 	}, {	/* bus error */
-		.start	= LCDC_FTLCDC200_0_IRQ0,
-		.end	= LCDC_FTLCDC200_0_IRQ0,
+		.start	= IRQ_A369_FTLCDC200_0_MERR,
 		.flags	= IORESOURCE_IRQ,
 	}, {	/* FIFO underrun */
-		.start	= LCDC_FTLCDC200_0_IRQ1,
-		.end	= LCDC_FTLCDC200_0_IRQ1,
+		.start	= IRQ_A369_FTLCDC200_0_FUR,
 		.flags	= IORESOURCE_IRQ,
 	}, {	/* base address update */
-		.start	= LCDC_FTLCDC200_0_IRQ2,
-		.end	= LCDC_FTLCDC200_0_IRQ2,
+		.start	= IRQ_A369_FTLCDC200_0_BAUPD,
 		.flags	= IORESOURCE_IRQ,
 	}, {	/* vertical status */
-		.start	= LCDC_FTLCDC200_0_IRQ3,
-		.end	= LCDC_FTLCDC200_0_IRQ3,
+		.start	= IRQ_A369_FTLCDC200_0_VSTATUS,
 		.flags	= IORESOURCE_IRQ,
 	},
 };
@@ -34,6 +30,9 @@ static struct resource ftlcdc200_resources[] = {
 static struct platform_device ftlcdc200_device = {
 	.name		= "ftlcdc200",
 	.id		= 0,
+	.dev		= {
+		.coherent_dma_mask	= DMA_BIT_MASK(32),
+	},
 	.num_resources	= ARRAY_SIZE(ftlcdc200_resources),
 	.resource	= ftlcdc200_resources,
 };
