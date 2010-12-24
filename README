@@ -137,7 +137,7 @@ pip iamge 2 comes from fb2
 
 you need to specify the size of the image you want to paste on top of background, e.g.
 
-$ fbset -fb /dev/fb1 -g 80 80 80 160 16 -n
+$ fbset -fb /dev/fb1 -g 80 80 80 160 16
 
 
 (2) alpha blending level
