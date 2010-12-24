@@ -11,7 +11,7 @@ mknod /dev/fb4 c 29 4
 echo zoom 160,120 images to full screen
 
 # setup image size
-fbset -fb /dev/fb4 -g 160 120 160 240 16 -n
+fbset -fb /dev/fb4 -g 160 120 160 240 16
 
 echo 1 > /sys/devices/platform/ftlcdc200.0/zoom
 echo "enable zoom (`cat /sys/devices/platform/ftlcdc200.0/zoom`)"
