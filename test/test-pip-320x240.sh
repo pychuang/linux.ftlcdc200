@@ -12,16 +12,16 @@ mknod /dev/fb2 c 29 2
 echo "320,240" > /sys/class/graphics/fb0/virtual_size
 
 # paste background
-cp 565_320x240_patterns/01_565_320x240.bmp.bin /dev/fb0
+cat 565_320x240_patterns/01_565_320x240.bmp.bin > /dev/fb0
 
 # prepare image 1
-cp 565_80x80_patterns/10_565_80x80.bmp.bin /dev/fb1
+cat 565_80x80_patterns/10_565_80x80.bmp.bin > /dev/fb1
 
 # setup image size
 fbset -fb /dev/fb1 -g 80 80 80 160 16 -n
 
 # prepare image 2
-cp 565_80x80_patterns/11_565_80x80.bmp.bin /dev/fb2
+cat 565_80x80_patterns/11_565_80x80.bmp.bin > /dev/fb2
 
 # setup image size
 fbset -fb /dev/fb2 -g 80 80 80 160 16 -n

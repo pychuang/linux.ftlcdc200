@@ -5,7 +5,7 @@ for file in 565_320x240_patterns/*
 do
 	if [ -f $file ]
 	then
-		cp $file /dev/fb0
+		cat $file > /dev/fb0
 		sleep 1
 	fi
 done

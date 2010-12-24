@@ -17,19 +17,19 @@ do
 		case $state in
 		0)
 			state=1
-			cp $file /dev/fb0
+			cat $file > /dev/fb0
 			;;
 		1)
 			state=2
-			cp $file /dev/fb1
+			cat $file > /dev/fb1
 			;;
 		2)
 			state=3
-			cp $file /dev/fb3
+			cat $file > /dev/fb3
 			;;
 		3)
 		state=0
-			cp $file /dev/fb2
+			cat $file > /dev/fb2
 			;;
 		esac
 		sleep 1
@@ -59,4 +59,4 @@ echo 0 > /sys/devices/platform/ftlcdc200.0/pop
 echo "disable pop (`cat /sys/devices/platform/ftlcdc200.0/pop`)"
 
 # clear background after test finished since fb0 are messed up by us
-cp /dev/zero /dev/fb0
+cat /dev/zero > /dev/fb0

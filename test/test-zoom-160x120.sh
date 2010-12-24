@@ -20,7 +20,7 @@ for file in 565_160x120_patterns/*
 do
 	if [ -f $file ]
 	then
-		cp $file /dev/fb4
+		cat $file > /dev/fb4
 
 		# test pan
 		for yoffset in 0 40 80 120
