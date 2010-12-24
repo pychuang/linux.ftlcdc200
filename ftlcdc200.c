@@ -145,16 +145,20 @@ static struct fb_var_screeninfo ftlcdc200_default_var __devinitdata = {
 static void ftlcdc200_fb0_set_frame_base(struct ftlcdc200 *ftlcdc200,
 		unsigned int value)
 {
+	struct device *dev = ftlcdc200->dev;
+
 	iowrite32(value, ftlcdc200->base + FTLCDC200_OFFSET_FRAME_BASE0);
-	dev_dbg(ftlcdc200->dev, "  [FRAME BASE] = %08x\n", value);
+	dev_dbg(dev, "  [FRAME BASE] = %08x\n", value);
 }
 
 #if CONFIG_FTLCDC200_NR_FB > 1
 static void ftlcdc200_fb1_set_frame_base(struct ftlcdc200 *ftlcdc200,
 		unsigned int value)
 {
+	struct device *dev = ftlcdc200->dev;
+
 	iowrite32(value, ftlcdc200->base + FTLCDC200_OFFSET_FRAME_BASE1);
-	dev_dbg(ftlcdc200->dev, "  [FRAME BASE] = %08x\n", value);
+	dev_dbg(dev, "  [FRAME BASE] = %08x\n", value);
 }
 #endif
 
@@ -162,8 +166,10 @@ static void ftlcdc200_fb1_set_frame_base(struct ftlcdc200 *ftlcdc200,
 static void ftlcdc200_fb2_set_frame_base(struct ftlcdc200 *ftlcdc200,
 		unsigned int value)
 {
+	struct device *dev = ftlcdc200->dev;
+
 	iowrite32(value, ftlcdc200->base + FTLCDC200_OFFSET_FRAME_BASE2);
-	dev_dbg(ftlcdc200->dev, "  [FRAME BASE] = %08x\n", value);
+	dev_dbg(dev, "  [FRAME BASE] = %08x\n", value);
 }
 #endif
 
@@ -171,8 +177,10 @@ static void ftlcdc200_fb2_set_frame_base(struct ftlcdc200 *ftlcdc200,
 static void ftlcdc200_fb3_set_frame_base(struct ftlcdc200 *ftlcdc200,
 		unsigned int value)
 {
+	struct device *dev = ftlcdc200->dev;
+
 	iowrite32(value, ftlcdc200->base + FTLCDC200_OFFSET_FRAME_BASE3);
-	dev_dbg(ftlcdc200->dev, "  [FRAME BASE] = %08x\n", value);
+	dev_dbg(dev, "  [FRAME BASE] = %08x\n", value);
 }
 #endif
 
@@ -187,20 +195,22 @@ static void ftlcdc200_dont_set_frame_base(struct ftlcdc200 *ftlcdc200,
 static void ftlcdc200_fb1_set_position(struct ftlcdc200 *ftlcdc200,
 		int x, int y)
 {
+	struct device *dev = ftlcdc200->dev;
 	unsigned int value;
 
 	value = FTLCDC200_PIP_POS_H(x) | FTLCDC200_PIP_POS_V(y);
-	dev_dbg(ftlcdc200->dev, "  [PIP POS1]   = %08x (%d, %d)\n", value, x, y);
+	dev_dbg(dev, "  [PIP POS1]   = %08x (%d, %d)\n", value, x, y);
 	iowrite32(value, ftlcdc200->base + FTLCDC200_OFFSET_PIP_POS1);
 }
 
 static void ftlcdc200_fb1_get_position(struct ftlcdc200 *ftlcdc200,
 		int *x, int *y)
 {
+	struct device *dev = ftlcdc200->dev;
 	unsigned int reg;
 
 	reg = ioread32(ftlcdc200->base + FTLCDC200_OFFSET_PIP_POS1);
-	dev_dbg(ftlcdc200->dev, "  [PIP POS1]   = %08x\n", reg);
+	dev_dbg(dev, "  [PIP POS1]   = %08x\n", reg);
 
 	*x = FTLCDC200_PIP_POS_EXTRACT_H(reg);
 	*y = FTLCDC200_PIP_POS_EXTRACT_V(reg);
@@ -211,20 +221,22 @@ static void ftlcdc200_fb1_get_position(struct ftlcdc200 *ftlcdc200,
 static void ftlcdc200_fb2_set_position(struct ftlcdc200 *ftlcdc200,
 		int x, int y)
 {
+	struct device *dev = ftlcdc200->dev;
 	unsigned int value;
 
 	value = FTLCDC200_PIP_POS_H(x) | FTLCDC200_PIP_POS_V(y);
-	dev_dbg(ftlcdc200->dev, "  [PIP POS2]   = %08x (%d, %d)\n", value, x, y);
+	dev_dbg(dev, "  [PIP POS2]   = %08x (%d, %d)\n", value, x, y);
 	iowrite32(value, ftlcdc200->base + FTLCDC200_OFFSET_PIP_POS2);
 }
 
 static void ftlcdc200_fb2_get_position(struct ftlcdc200 *ftlcdc200,
 		int *x, int *y)
 {
+	struct device *dev = ftlcdc200->dev;
 	unsigned int reg;
 
 	reg = ioread32(ftlcdc200->base + FTLCDC200_OFFSET_PIP_POS2);
-	dev_dbg(ftlcdc200->dev, "  [PIP POS2]   = %08x\n", reg);
+	dev_dbg(dev, "  [PIP POS2]   = %08x\n", reg);
 
 	*x = FTLCDC200_PIP_POS_EXTRACT_H(reg);
 	*y = FTLCDC200_PIP_POS_EXTRACT_V(reg);
@@ -235,10 +247,11 @@ static void ftlcdc200_fb2_get_position(struct ftlcdc200 *ftlcdc200,
 static void ftlcdc200_fb1_set_dimension(struct ftlcdc200 *ftlcdc200,
 		int x, int y)
 {
+	struct device *dev = ftlcdc200->dev;
 	unsigned int value;
 
 	value = FTLCDC200_PIP_DIM_H(x) | FTLCDC200_PIP_DIM_V(y);
-	dev_dbg(ftlcdc200->dev, "  [PIP DIM1]   = %08x\n", value);
+	dev_dbg(dev, "  [PIP DIM1]   = %08x\n", value);
 	iowrite32(value, ftlcdc200->base + FTLCDC200_OFFSET_PIP_DIM1);
 }
 #endif
@@ -247,10 +260,11 @@ static void ftlcdc200_fb1_set_dimension(struct ftlcdc200 *ftlcdc200,
 static void ftlcdc200_fb2_set_dimension(struct ftlcdc200 *ftlcdc200,
 		int x, int y)
 {
+	struct device *dev = ftlcdc200->dev;
 	unsigned int value;
 
 	value = FTLCDC200_PIP_DIM_H(x) | FTLCDC200_PIP_DIM_V(y);
-	dev_dbg(ftlcdc200->dev, "  [PIP DIM2]   = %08x\n", value);
+	dev_dbg(dev, "  [PIP DIM2]   = %08x\n", value);
 	iowrite32(value, ftlcdc200->base + FTLCDC200_OFFSET_PIP_DIM2);
 }
 #endif
@@ -258,6 +272,7 @@ static void ftlcdc200_fb2_set_dimension(struct ftlcdc200 *ftlcdc200,
 #if CONFIG_FTLCDC200_NR_FB > 3
 static void ftlcdc200_fb0_set_popscale(struct ftlcdc200 *ftlcdc200, int scale)
 {
+	struct device *dev = ftlcdc200->dev;
 	unsigned int reg;
 
 	reg = ioread32(ftlcdc200->base + FTLCDC200_OFFSET_POPSCALE);
@@ -276,16 +291,17 @@ static void ftlcdc200_fb0_set_popscale(struct ftlcdc200 *ftlcdc200, int scale)
 		BUG();
 	}
 
-	dev_dbg(ftlcdc200->dev, "  [POPSCALE]   = %08x\n", reg);
+	dev_dbg(dev, "  [POPSCALE]   = %08x\n", reg);
 	iowrite32(reg, ftlcdc200->base + FTLCDC200_OFFSET_POPSCALE);
 }
 
 static int ftlcdc200_fb0_get_popscale(struct ftlcdc200 *ftlcdc200)
 {
+	struct device *dev = ftlcdc200->dev;
 	unsigned int reg;
 
 	reg = ioread32(ftlcdc200->base + FTLCDC200_OFFSET_POPSCALE);
-	dev_dbg(ftlcdc200->dev, "  [POPSCALE]   = %08x\n", reg);
+	dev_dbg(dev, "  [POPSCALE]   = %08x\n", reg);
 
 	reg &= FTLCDC200_POPSCALE_0_MASK;
 
@@ -306,6 +322,7 @@ static int ftlcdc200_fb0_get_popscale(struct ftlcdc200 *ftlcdc200)
 
 static void ftlcdc200_fb1_set_popscale(struct ftlcdc200 *ftlcdc200, int scale)
 {
+	struct device *dev = ftlcdc200->dev;
 	unsigned int reg;
 
 	reg = ioread32(ftlcdc200->base + FTLCDC200_OFFSET_POPSCALE);
@@ -324,16 +341,17 @@ static void ftlcdc200_fb1_set_popscale(struct ftlcdc200 *ftlcdc200, int scale)
 		BUG();
 	}
 
-	dev_dbg(ftlcdc200->dev, "  [POPSCALE]   = %08x\n", reg);
+	dev_dbg(dev, "  [POPSCALE]   = %08x\n", reg);
 	iowrite32(reg, ftlcdc200->base + FTLCDC200_OFFSET_POPSCALE);
 }
 
 static int ftlcdc200_fb1_get_popscale(struct ftlcdc200 *ftlcdc200)
 {
+	struct device *dev = ftlcdc200->dev;
 	unsigned int reg;
 
 	reg = ioread32(ftlcdc200->base + FTLCDC200_OFFSET_POPSCALE);
-	dev_dbg(ftlcdc200->dev, "  [POPSCALE]   = %08x\n", reg);
+	dev_dbg(dev, "  [POPSCALE]   = %08x\n", reg);
 
 	reg &= FTLCDC200_POPSCALE_1_MASK;
 
@@ -354,6 +372,7 @@ static int ftlcdc200_fb1_get_popscale(struct ftlcdc200 *ftlcdc200)
 
 static void ftlcdc200_fb2_set_popscale(struct ftlcdc200 *ftlcdc200, int scale)
 {
+	struct device *dev = ftlcdc200->dev;
 	unsigned int reg;
 
 	reg = ioread32(ftlcdc200->base + FTLCDC200_OFFSET_POPSCALE);
@@ -372,16 +391,17 @@ static void ftlcdc200_fb2_set_popscale(struct ftlcdc200 *ftlcdc200, int scale)
 		BUG();
 	}
 
-	dev_dbg(ftlcdc200->dev, "  [POPSCALE]   = %08x\n", reg);
+	dev_dbg(dev, "  [POPSCALE]   = %08x\n", reg);
 	iowrite32(reg, ftlcdc200->base + FTLCDC200_OFFSET_POPSCALE);
 }
 
 static int ftlcdc200_fb2_get_popscale(struct ftlcdc200 *ftlcdc200)
 {
+	struct device *dev = ftlcdc200->dev;
 	unsigned int reg;
 
 	reg = ioread32(ftlcdc200->base + FTLCDC200_OFFSET_POPSCALE);
-	dev_dbg(ftlcdc200->dev, "  [POPSCALE]   = %08x\n", reg);
+	dev_dbg(dev, "  [POPSCALE]   = %08x\n", reg);
 
 	reg &= FTLCDC200_POPSCALE_2_MASK;
 
@@ -402,6 +422,7 @@ static int ftlcdc200_fb2_get_popscale(struct ftlcdc200 *ftlcdc200)
 
 static void ftlcdc200_fb3_set_popscale(struct ftlcdc200 *ftlcdc200, int scale)
 {
+	struct device *dev = ftlcdc200->dev;
 	unsigned int reg;
 
 	reg = ioread32(ftlcdc200->base + FTLCDC200_OFFSET_POPSCALE);
@@ -420,16 +441,17 @@ static void ftlcdc200_fb3_set_popscale(struct ftlcdc200 *ftlcdc200, int scale)
 		BUG();
 	}
 
-	dev_dbg(ftlcdc200->dev, "  [POPSCALE]   = %08x\n", reg);
+	dev_dbg(dev, "  [POPSCALE]   = %08x\n", reg);
 	iowrite32(reg, ftlcdc200->base + FTLCDC200_OFFSET_POPSCALE);
 }
 
 static int ftlcdc200_fb3_get_popscale(struct ftlcdc200 *ftlcdc200)
 {
+	struct device *dev = ftlcdc200->dev;
 	unsigned int reg;
 
 	reg = ioread32(ftlcdc200->base + FTLCDC200_OFFSET_POPSCALE);
-	dev_dbg(ftlcdc200->dev, "  [POPSCALE]   = %08x\n", reg);
+	dev_dbg(dev, "  [POPSCALE]   = %08x\n", reg);
 
 	reg &= FTLCDC200_POPSCALE_3_MASK;
 
@@ -570,18 +592,19 @@ static void ftlcdc200_set_linear_gamma(struct ftlcdc200 *ftlcdc200)
 static irqreturn_t ftlcdc200_interrupt(int irq, void *dev_id)
 {
 	struct ftlcdc200 *ftlcdc200 = dev_id;
+	struct device *dev = ftlcdc200->dev;
 	unsigned int status;
 
 	status = ioread32(ftlcdc200->base + FTLCDC200_OFFSET_INT_STATUS);
 
 	if (status & FTLCDC200_INT_UNDERRUN) {
 		if (printk_ratelimit())
-			dev_notice(ftlcdc200->dev, "underrun\n");
+			dev_notice(dev, "underrun\n");
 	}
 
 	if (status & FTLCDC200_INT_NEXT_BASE) {
 		if (printk_ratelimit())
-			dev_dbg(ftlcdc200->dev, "frame base updated\n");
+			dev_dbg(dev, "frame base updated\n");
 
 		ftlcdc200->nb = 1;
 		wake_up(&ftlcdc200->wait_nb);
@@ -589,12 +612,12 @@ static irqreturn_t ftlcdc200_interrupt(int irq, void *dev_id)
 
 	if (status & FTLCDC200_INT_VSTATUS) {
 		if (printk_ratelimit())
-			dev_dbg(ftlcdc200->dev, "vertical duration reached \n");
+			dev_dbg(dev, "vertical duration reached \n");
 	}
 
 	if (status & FTLCDC200_INT_BUS_ERROR) {
 		if (printk_ratelimit())
-			dev_err(ftlcdc200->dev, "bus error!\n");
+			dev_err(dev, "bus error!\n");
 	}
 
 	iowrite32(status, ftlcdc200->base + FTLCDC200_OFFSET_INT_CLEAR);
@@ -914,14 +937,15 @@ static int ftlcdc200_fb4_check_var(struct fb_var_screeninfo *var,
  */
 static int ftlcdc200_fb0_set_par(struct fb_info *info)
 {
+	struct device *dev = info->device;
 	struct ftlcdc200fb *ftlcdc200fb = info->par;
 	struct ftlcdc200 *ftlcdc200 = ftlcdc200fb->ftlcdc200;
 	unsigned long clk_value_khz = ftlcdc200->clk_value_khz;
 	unsigned int divno;
 	unsigned int reg;
 
-	dev_dbg(info->device, "fb%d: %s:\n", info->node, __func__);
-	dev_dbg(info->device, "  resolution:     %ux%u (%ux%u virtual)\n",
+	dev_dbg(dev, "fb%d: %s:\n", info->node, __func__);
+	dev_dbg(dev, "  resolution:     %ux%u (%ux%u virtual)\n",
 		info->var.xres, info->var.yres,
 		info->var.xres_virtual, info->var.yres_virtual);
 
@@ -943,18 +967,17 @@ static int ftlcdc200_fb0_set_par(struct fb_info *info)
 	 */
 	divno = DIV_ROUND_UP(clk_value_khz, PICOS2KHZ(info->var.pixclock));
 	if (divno == 0) {
-		dev_err(info->device,
-			"pixel clock(%lu kHz) > bus clock(%lu kHz)\n",
+		dev_err(dev, "pixel clock(%lu kHz) > bus clock(%lu kHz)\n",
 			PICOS2KHZ(info->var.pixclock), clk_value_khz);
 		return -EINVAL;
 	}
 
 	clk_value_khz = DIV_ROUND_UP(clk_value_khz, divno);
 	info->var.pixclock = KHZ2PICOS(clk_value_khz);
-	dev_dbg(info->device, "  updated pixclk: %lu KHz (divno = %d)\n",
+	dev_dbg(dev, "  updated pixclk: %lu KHz (divno = %d)\n",
 		clk_value_khz, divno - 1);
 
-	dev_dbg(info->device, "  frame rate:     %lu Hz\n",
+	dev_dbg(dev, "  frame rate:     %lu Hz\n",
 		clk_value_khz * 1000
 		/ (info->var.xres + info->var.left_margin
 			+ info->var.right_margin + info->var.hsync_len)
@@ -970,7 +993,7 @@ static int ftlcdc200_fb0_set_par(struct fb_info *info)
 	if ((info->var.sync & FB_SYNC_VERT_HIGH_ACT) == 0)
 		reg |= FTLCDC200_POLARITY_IVS;
 
-	dev_dbg(info->device, "  [POLARITY]   = %08x\n", reg);
+	dev_dbg(dev, "  [POLARITY]   = %08x\n", reg);
 	iowrite32(reg, ftlcdc200->base + FTLCDC200_OFFSET_POLARITY);
 
 	/*
@@ -981,7 +1004,7 @@ static int ftlcdc200_fb0_set_par(struct fb_info *info)
 	reg |= FTLCDC200_HTIMING_HFP(info->var.right_margin - 1);
 	reg |= FTLCDC200_HTIMING_HBP(info->var.left_margin - 1);
 
-	dev_dbg(info->device, "  [HTIMING]    = %08x\n", reg);
+	dev_dbg(dev, "  [HTIMING]    = %08x\n", reg);
 	iowrite32(reg, ftlcdc200->base + FTLCDC200_OFFSET_HTIMING);
 
 	/*
@@ -991,12 +1014,12 @@ static int ftlcdc200_fb0_set_par(struct fb_info *info)
 	reg |= FTLCDC200_VTIMING0_VW(info->var.vsync_len - 1);
 	reg |= FTLCDC200_VTIMING0_VFP(info->var.lower_margin);
 
-	dev_dbg(info->device, "  [VTIMING0]   = %08x\n", reg);
+	dev_dbg(dev, "  [VTIMING0]   = %08x\n", reg);
 	iowrite32(reg, ftlcdc200->base + FTLCDC200_OFFSET_VTIMING0);
 
 	reg = FTLCDC200_VTIMING1_VBP(info->var.upper_margin);
 
-	dev_dbg(info->device, "  [VTIMING1]   = %08x\n", reg);
+	dev_dbg(dev, "  [VTIMING1]   = %08x\n", reg);
 	iowrite32(reg, ftlcdc200->base + FTLCDC200_OFFSET_VTIMING1);
 
 	/*
@@ -1037,7 +1060,7 @@ static int ftlcdc200_fb0_set_par(struct fb_info *info)
 			break;
 	}
 
-	dev_dbg(info->device, "  [PIXEL]      = %08x\n", reg);
+	dev_dbg(dev, "  [PIXEL]      = %08x\n", reg);
 	iowrite32(reg, ftlcdc200->base + FTLCDC200_OFFSET_PIXEL);
 
 	/*
@@ -1048,7 +1071,7 @@ static int ftlcdc200_fb0_set_par(struct fb_info *info)
 	reg |= FTLCDC200_SERIAL_SERIAL;
 #endif
 
-	dev_dbg(info->device, "  [SERIAL]     = %08x\n", reg);
+	dev_dbg(dev, "  [SERIAL]     = %08x\n", reg);
 	iowrite32(reg, ftlcdc200->base + FTLCDC200_OFFSET_SERIAL);
 
 	/*
@@ -1057,7 +1080,7 @@ static int ftlcdc200_fb0_set_par(struct fb_info *info)
 	reg = ioread32(ftlcdc200->base + FTLCDC200_OFFSET_CTRL);
 	reg |= FTLCDC200_CTRL_ENABLE | FTLCDC200_CTRL_LCD;
 
-	dev_dbg(info->device, "  [CTRL]       = %08x\n", reg);
+	dev_dbg(dev, "  [CTRL]       = %08x\n", reg);
 	iowrite32(reg, ftlcdc200->base + FTLCDC200_OFFSET_CTRL);
 
 	return 0;
@@ -1066,11 +1089,12 @@ static int ftlcdc200_fb0_set_par(struct fb_info *info)
 #if CONFIG_FTLCDC200_NR_FB > 1
 static int ftlcdc200_fb1_set_par(struct fb_info *info)
 {
+	struct device *dev = info->device;
 	struct ftlcdc200fb *ftlcdc200fb = info->par;
 	struct ftlcdc200 *ftlcdc200 = ftlcdc200fb->ftlcdc200;
 
-	dev_dbg(info->device, "fb%d: %s:\n", info->node, __func__);
-	dev_dbg(info->device, "  resolution:     %ux%u (%ux%u virtual)\n",
+	dev_dbg(dev, "fb%d: %s:\n", info->node, __func__);
+	dev_dbg(dev, "  resolution:     %ux%u (%ux%u virtual)\n",
 		info->var.xres, info->var.yres,
 		info->var.xres_virtual, info->var.yres_virtual);
 
@@ -1099,8 +1123,10 @@ static int ftlcdc200_fb1_set_par(struct fb_info *info)
 #if CONFIG_FTLCDC200_NR_FB > 3
 static int ftlcdc200_fb3_set_par(struct fb_info *info)
 {
-	dev_dbg(info->device, "fb%d: %s:\n", info->node, __func__);
-	dev_dbg(info->device, "  resolution:     %ux%u (%ux%u virtual)\n",
+	struct device *dev = info->device;
+
+	dev_dbg(dev, "fb%d: %s:\n", info->node, __func__);
+	dev_dbg(dev, "  resolution:     %ux%u (%ux%u virtual)\n",
 		info->var.xres, info->var.yres,
 		info->var.xres_virtual, info->var.yres_virtual);
 
@@ -1124,6 +1150,7 @@ static int ftlcdc200_fb3_set_par(struct fb_info *info)
 #if CONFIG_FTLCDC200_NR_FB > 4
 static int ftlcdc200_fb4_set_par(struct fb_info *info)
 {
+	struct device *dev = info->device;
 	struct ftlcdc200fb *ftlcdc200fb = info->par;
 	struct ftlcdc200 *ftlcdc200 = ftlcdc200fb->ftlcdc200;
 	unsigned int xsrc, ysrc;
@@ -1131,8 +1158,8 @@ static int ftlcdc200_fb4_set_par(struct fb_info *info)
 	unsigned int reg;
 	unsigned int hcoef, vcoef;
 
-	dev_dbg(info->device, "fb%d: %s:\n", info->node, __func__);
-	dev_dbg(info->device, "  resolution:     %ux%u (%ux%u virtual)\n",
+	dev_dbg(dev, "fb%d: %s:\n", info->node, __func__);
+	dev_dbg(dev, "  resolution:     %ux%u (%ux%u virtual)\n",
 		info->var.xres, info->var.yres,
 		info->var.xres_virtual, info->var.yres_virtual);
 
@@ -1155,19 +1182,19 @@ static int ftlcdc200_fb4_set_par(struct fb_info *info)
 	ydst = ftlcdc200->fb[0]->info->var.yres;
 
 	reg = (xsrc - 1) & FTLCDC200_SCALE_IN_HRES_MASK;
-	dev_dbg(ftlcdc200->dev, "  [SCALE INH]  = %08x\n", reg);
+	dev_dbg(dev, "  [SCALE INH]  = %08x\n", reg);
 	iowrite32(reg, ftlcdc200->base + FTLCDC200_OFFSET_SCALE_IN_HRES);
 
 	reg = (ysrc - 1) & FTLCDC200_SCALE_IN_VRES_MASK;
-	dev_dbg(ftlcdc200->dev, "  [SCALE INV]  = %08x\n", reg);
+	dev_dbg(dev, "  [SCALE INV]  = %08x\n", reg);
 	iowrite32(reg, ftlcdc200->base + FTLCDC200_OFFSET_SCALE_IN_VRES);
 
 	reg = xdst & FTLCDC200_SCALE_OUT_HRES_MASK;
-	dev_dbg(ftlcdc200->dev, "  [SCALE OUTH] = %08x\n", reg);
+	dev_dbg(dev, "  [SCALE OUTH] = %08x\n", reg);
 	iowrite32(reg, ftlcdc200->base + FTLCDC200_OFFSET_SCALE_OUT_HRES);
 
 	reg = ydst & FTLCDC200_SCALE_OUT_VRES_MASK;
-	dev_dbg(ftlcdc200->dev, "  [SCALE OUTV] = %08x\n", reg);
+	dev_dbg(dev, "  [SCALE OUTV] = %08x\n", reg);
 	iowrite32(reg, ftlcdc200->base + FTLCDC200_OFFSET_SCALE_OUT_VRES);
 
 	/*
@@ -1188,14 +1215,14 @@ static int ftlcdc200_fb4_set_par(struct fb_info *info)
 	}
 
 	reg = FTLCDC200_SCALE_PAR(hcoef, vcoef);
-	dev_dbg(ftlcdc200->dev, "  [SCALE PAR]  = %08x\n", reg);
+	dev_dbg(dev, "  [SCALE PAR]  = %08x\n", reg);
 	iowrite32(reg, ftlcdc200->base + FTLCDC200_OFFSET_SCALE_PAR);
 
 	/*
 	 * We use second stage scaler only.
 	 */
 	reg = 0;
-	dev_dbg(ftlcdc200->dev, "  [SCALE CTRL] = %08x\n", reg);
+	dev_dbg(dev, "  [SCALE CTRL] = %08x\n", reg);
 	iowrite32(reg, ftlcdc200->base + FTLCDC200_OFFSET_SCALE_CTRL);
 
 	return 0;
@@ -1227,10 +1254,11 @@ static int ftlcdc200_fb4_set_par(struct fb_info *info)
 static int ftlcdc200_fb_setcolreg(unsigned regno, unsigned red, unsigned green,
 		unsigned blue, unsigned transp, struct fb_info *info)
 {
+	struct device *dev = info->device;
 	struct ftlcdc200fb *ftlcdc200fb = info->par;
 	u32 val;
 
-	dev_dbg(info->device, "fb%d: %s(%d, %d, %d, %d, %d)\n",
+	dev_dbg(dev, "fb%d: %s(%d, %d, %d, %d, %d)\n",
 		info->node, __func__, regno, red, green, blue, transp);
 
 	if (regno >= 256)  /* no. of hw registers */
@@ -1296,12 +1324,13 @@ static int ftlcdc200_fb_setcolreg(unsigned regno, unsigned red, unsigned green,
 static int ftlcdc200_fb_pan_display(struct fb_var_screeninfo *var,
 		struct fb_info *info)
 {
+	struct device *dev = info->device;
 	struct ftlcdc200fb *ftlcdc200fb = info->par;
 	struct ftlcdc200 *ftlcdc200 = ftlcdc200fb->ftlcdc200;
 	unsigned long dma_addr;
 	unsigned int value;
 
-	dev_dbg(info->device, "fb%d: %s\n", info->node, __func__);
+	dev_dbg(dev, "fb%d: %s\n", info->node, __func__);
 
 	dma_addr = info->fix.smem_start + var->yoffset * info->fix.line_length;
 	value = FTLCDC200_FRAME_BASE(dma_addr);
@@ -1378,14 +1407,14 @@ static struct fb_ops ftlcdc200_fb4_ops = {
  *	/sys/devices/platform/ftlcdc200.x/
  *****************************************************************************/
 #if CONFIG_FTLCDC200_NR_FB > 1
-static ssize_t ftlcdc200_show_pip(struct device *device,
+static ssize_t ftlcdc200_show_pip(struct device *dev,
 		struct device_attribute *attr, char *buf)
 {
-	struct ftlcdc200 *ftlcdc200 = dev_get_drvdata(device);
+	struct ftlcdc200 *ftlcdc200 = dev_get_drvdata(dev);
 	unsigned int reg;
 	int pip = 0;
 
-	dev_dbg(ftlcdc200->dev, "%s\n", __func__);
+	dev_dbg(dev, "%s\n", __func__);
 	reg = ioread32(ftlcdc200->base + FTLCDC200_OFFSET_CTRL);
 	reg &= FTLCDC200_CTRL_PIP_MASK;
 
@@ -1398,15 +1427,15 @@ static ssize_t ftlcdc200_show_pip(struct device *device,
 	return snprintf(buf, PAGE_SIZE, "%d\n", pip);
 }
 
-static ssize_t ftlcdc200_store_pip(struct device *device,
+static ssize_t ftlcdc200_store_pip(struct device *dev,
 		struct device_attribute *attr, const char *buf, size_t count)
 {
-	struct ftlcdc200 *ftlcdc200 = dev_get_drvdata(device);
+	struct ftlcdc200 *ftlcdc200 = dev_get_drvdata(dev);
 	char **last = NULL;
 	unsigned int reg;
 	int pip;
 
-	dev_dbg(ftlcdc200->dev, "%s\n", __func__);
+	dev_dbg(dev, "%s\n", __func__);
 	pip = simple_strtoul(buf, last, 0);
 	reg = ioread32(ftlcdc200->base + FTLCDC200_OFFSET_CTRL);
 	reg &= ~FTLCDC200_CTRL_PIP_MASK;
@@ -1418,39 +1447,39 @@ static ssize_t ftlcdc200_store_pip(struct device *device,
 	} else if (pip == 2) {
 		reg |= FTLCDC200_CTRL_PIP_DOUBLE;
 	} else {
-		dev_info(ftlcdc200->dev, "invalid pip window number %d\n", pip);
+		dev_info(dev, "invalid pip window number %d\n", pip);
 		return -EINVAL;
 	}
 
-	dev_dbg(ftlcdc200->dev, "  [CTRL]       = %08x\n", reg);
+	dev_dbg(dev, "  [CTRL]       = %08x\n", reg);
 	iowrite32(reg, ftlcdc200->base + FTLCDC200_OFFSET_CTRL);
 
 	return count;
 }
 
-static ssize_t ftlcdc200_show_blend1(struct device *device,
+static ssize_t ftlcdc200_show_blend1(struct device *dev,
 		struct device_attribute *attr, char *buf)
 {
-	struct ftlcdc200 *ftlcdc200 = dev_get_drvdata(device);
+	struct ftlcdc200 *ftlcdc200 = dev_get_drvdata(dev);
 	unsigned int reg;
 	int blend1;
 
-	dev_dbg(ftlcdc200->dev, "%s\n", __func__);
+	dev_dbg(dev, "%s\n", __func__);
 	reg = ioread32(ftlcdc200->base + FTLCDC200_OFFSET_PIP);
 	blend1 = FTLCDC200_PIP_BLEND_EXTRACT_1(reg);
 
 	return snprintf(buf, PAGE_SIZE, "%d\n", blend1);
 }
 
-static ssize_t ftlcdc200_store_blend1(struct device *device,
+static ssize_t ftlcdc200_store_blend1(struct device *dev,
 		struct device_attribute *attr, const char *buf, size_t count)
 {
-	struct ftlcdc200 *ftlcdc200 = dev_get_drvdata(device);
+	struct ftlcdc200 *ftlcdc200 = dev_get_drvdata(dev);
 	char **last = NULL;
 	unsigned int reg;
 	int blend1;
 
-	dev_dbg(ftlcdc200->dev, "%s\n", __func__);
+	dev_dbg(dev, "%s\n", __func__);
 	blend1 = simple_strtoul(buf, last, 0);
 
 	if (blend1 > 16)
@@ -1460,35 +1489,35 @@ static ssize_t ftlcdc200_store_blend1(struct device *device,
 	reg &= ~FTLCDC200_PIP_BLEND_MASK_1;
 	reg |= FTLCDC200_PIP_BLEND_1(blend1);
 
-	dev_dbg(ftlcdc200->dev, "  [PIP]        = %08x\n", reg);
+	dev_dbg(dev, "  [PIP]        = %08x\n", reg);
 	iowrite32(reg, ftlcdc200->base + FTLCDC200_OFFSET_PIP);
 
 	return count;
 }
 
-static ssize_t ftlcdc200_show_blend2(struct device *device,
+static ssize_t ftlcdc200_show_blend2(struct device *dev,
 		struct device_attribute *attr, char *buf)
 {
-	struct ftlcdc200 *ftlcdc200 = dev_get_drvdata(device);
+	struct ftlcdc200 *ftlcdc200 = dev_get_drvdata(dev);
 	unsigned int reg;
 	int blend2;
 
-	dev_dbg(ftlcdc200->dev, "%s\n", __func__);
+	dev_dbg(dev, "%s\n", __func__);
 	reg = ioread32(ftlcdc200->base + FTLCDC200_OFFSET_PIP);
 	blend2 = FTLCDC200_PIP_BLEND_EXTRACT_2(reg);
 
 	return snprintf(buf, PAGE_SIZE, "%d\n", blend2);
 }
 
-static ssize_t ftlcdc200_store_blend2(struct device *device,
+static ssize_t ftlcdc200_store_blend2(struct device *dev,
 		struct device_attribute *attr, const char *buf, size_t count)
 {
-	struct ftlcdc200 *ftlcdc200 = dev_get_drvdata(device);
+	struct ftlcdc200 *ftlcdc200 = dev_get_drvdata(dev);
 	char **last = NULL;
 	unsigned int reg;
 	int blend2;
 
-	dev_dbg(ftlcdc200->dev, "%s\n", __func__);
+	dev_dbg(dev, "%s\n", __func__);
 	blend2 = simple_strtoul(buf, last, 0);
 
 	if (blend2 > 16)
@@ -1498,7 +1527,7 @@ static ssize_t ftlcdc200_store_blend2(struct device *device,
 	reg &= ~FTLCDC200_PIP_BLEND_MASK_2;
 	reg |= FTLCDC200_PIP_BLEND_2(blend2);
 
-	dev_dbg(ftlcdc200->dev, "  [PIP]        = %08x\n", reg);
+	dev_dbg(dev, "  [PIP]        = %08x\n", reg);
 	iowrite32(reg, ftlcdc200->base + FTLCDC200_OFFSET_PIP);
 
 	return count;
@@ -1506,14 +1535,14 @@ static ssize_t ftlcdc200_store_blend2(struct device *device,
 #endif
 
 #if CONFIG_FTLCDC200_NR_FB > 3
-static ssize_t ftlcdc200_show_pop(struct device *device,
+static ssize_t ftlcdc200_show_pop(struct device *dev,
 		struct device_attribute *attr, char *buf)
 {
-	struct ftlcdc200 *ftlcdc200 = dev_get_drvdata(device);
+	struct ftlcdc200 *ftlcdc200 = dev_get_drvdata(dev);
 	unsigned int reg;
 	int pop;
 
-	dev_dbg(ftlcdc200->dev, "%s\n", __func__);
+	dev_dbg(dev, "%s\n", __func__);
 	reg = ioread32(ftlcdc200->base + FTLCDC200_OFFSET_CTRL);
 
 	if (reg & FTLCDC200_CTRL_POP) {
@@ -1525,15 +1554,15 @@ static ssize_t ftlcdc200_show_pop(struct device *device,
 	return snprintf(buf, PAGE_SIZE, "%d\n", pop);
 }
 
-static ssize_t ftlcdc200_store_pop(struct device *device,
+static ssize_t ftlcdc200_store_pop(struct device *dev,
 		struct device_attribute *attr, const char *buf, size_t count)
 {
-	struct ftlcdc200 *ftlcdc200 = dev_get_drvdata(device);
+	struct ftlcdc200 *ftlcdc200 = dev_get_drvdata(dev);
 	char **last = NULL;
 	unsigned int reg;
 	int pop;
 
-	dev_dbg(ftlcdc200->dev, "%s\n", __func__);
+	dev_dbg(dev, "%s\n", __func__);
 	pop = simple_strtoul(buf, last, 0);
 	reg = ioread32(ftlcdc200->base + FTLCDC200_OFFSET_CTRL);
 
@@ -1543,7 +1572,7 @@ static ssize_t ftlcdc200_store_pop(struct device *device,
 		reg |= FTLCDC200_CTRL_POP;
 	}
 
-	dev_dbg(ftlcdc200->dev, "  [CTRL]       = %08x\n", reg);
+	dev_dbg(dev, "  [CTRL]       = %08x\n", reg);
 	iowrite32(reg, ftlcdc200->base + FTLCDC200_OFFSET_CTRL);
 
 	return count;
@@ -1551,14 +1580,14 @@ static ssize_t ftlcdc200_store_pop(struct device *device,
 #endif
 
 #if CONFIG_FTLCDC200_NR_FB > 4
-static ssize_t ftlcdc200_show_zoom(struct device *device,
+static ssize_t ftlcdc200_show_zoom(struct device *dev,
 		struct device_attribute *attr, char *buf)
 {
-	struct ftlcdc200 *ftlcdc200 = dev_get_drvdata(device);
+	struct ftlcdc200 *ftlcdc200 = dev_get_drvdata(dev);
 	unsigned int ctrl;
 	int zoom;
 
-	dev_dbg(ftlcdc200->dev, "%s\n", __func__);
+	dev_dbg(dev, "%s\n", __func__);
 	ctrl = ioread32(ftlcdc200->base + FTLCDC200_OFFSET_CTRL);
 
 	if (ctrl & FTLCDC200_CTRL_SCALER) {
@@ -1570,16 +1599,16 @@ static ssize_t ftlcdc200_show_zoom(struct device *device,
 	return snprintf(buf, PAGE_SIZE, "%d\n", zoom);
 }
 
-static ssize_t ftlcdc200_store_zoom(struct device *device,
+static ssize_t ftlcdc200_store_zoom(struct device *dev,
 		struct device_attribute *attr, const char *buf, size_t count)
 {
-	struct ftlcdc200 *ftlcdc200 = dev_get_drvdata(device);
+	struct ftlcdc200 *ftlcdc200 = dev_get_drvdata(dev);
 	char **last = NULL;
 	unsigned int ctrl;
 	unsigned int base;
 	int zoom;
 
-	dev_dbg(ftlcdc200->dev, "%s\n", __func__);
+	dev_dbg(dev, "%s\n", __func__);
 	zoom = simple_strtoul(buf, last, 0);
 	ctrl = ioread32(ftlcdc200->base + FTLCDC200_OFFSET_CTRL);
 
@@ -1608,7 +1637,7 @@ static ssize_t ftlcdc200_store_zoom(struct device *device,
 		 * turning on/off.
 		 */
 		ctrl &= ~FTLCDC200_CTRL_ENABLE;
-		dev_dbg(ftlcdc200->dev, "  [CTRL]       = %08x\n", ctrl);
+		dev_dbg(dev, "  [CTRL]       = %08x\n", ctrl);
 		iowrite32(ctrl, ftlcdc200->base + FTLCDC200_OFFSET_CTRL);
 
 		ctrl |= FTLCDC200_CTRL_ENABLE | FTLCDC200_CTRL_SCALER;
@@ -1617,7 +1646,7 @@ static ssize_t ftlcdc200_store_zoom(struct device *device,
 		ftlcdc200_fb0_set_frame_base(ftlcdc200, base);
 	}
 
-	dev_dbg(ftlcdc200->dev, "  [CTRL]       = %08x\n", ctrl);
+	dev_dbg(dev, "  [CTRL]       = %08x\n", ctrl);
 	iowrite32(ctrl, ftlcdc200->base + FTLCDC200_OFFSET_CTRL);
 
 out:
@@ -1648,40 +1677,40 @@ static struct device_attribute ftlcdc200_device_attrs[] = {
  *	/sys/class/graphics/fb2/
  *	/sys/class/graphics/fb3/
  *****************************************************************************/
-static ssize_t ftlcdc200_show_smem_start(struct device *device,
+static ssize_t ftlcdc200_show_smem_start(struct device *dev,
 		struct device_attribute *attr, char *buf)
 {
-	struct fb_info *info = dev_get_drvdata(device);
+	struct fb_info *info = dev_get_drvdata(dev);
 
 	return snprintf(buf, PAGE_SIZE, "%08lx\n", info->fix.smem_start);
 }
 
 #if CONFIG_FTLCDC200_NR_FB > 3
-static ssize_t ftlcdc200_show_popscale(struct device *device,
+static ssize_t ftlcdc200_show_popscale(struct device *dev,
 		struct device_attribute *attr, char *buf)
 {
-	struct fb_info *info = dev_get_drvdata(device);
+	struct fb_info *info = dev_get_drvdata(dev);
 	struct ftlcdc200fb *ftlcdc200fb = info->par;
 	struct ftlcdc200 *ftlcdc200 = ftlcdc200fb->ftlcdc200;
 	int scale;
 
-	dev_dbg(ftlcdc200->dev, "%s\n", __func__);
+	dev_dbg(dev, "%s\n", __func__);
 
 	scale = ftlcdc200fb->get_popscale(ftlcdc200);
 
 	return snprintf(buf, PAGE_SIZE, "%d\n", scale);
 }
 
-static ssize_t ftlcdc200_store_popscale(struct device *device,
+static ssize_t ftlcdc200_store_popscale(struct device *dev,
 		struct device_attribute *attr, const char *buf, size_t count)
 {
-	struct fb_info *info = dev_get_drvdata(device);
+	struct fb_info *info = dev_get_drvdata(dev);
 	struct ftlcdc200fb *ftlcdc200fb = info->par;
 	struct ftlcdc200 *ftlcdc200 = ftlcdc200fb->ftlcdc200;
 	char **last = NULL;
 	int scale;
 
-	dev_dbg(ftlcdc200->dev, "%s\n", __func__);
+	dev_dbg(dev, "%s\n", __func__);
 	scale = simple_strtoul(buf, last, 0);
 
 	if (scale > 2)
@@ -1708,30 +1737,30 @@ static struct device_attribute ftlcdc200_fb_device_attrs[] = {
  *	/sys/class/graphics/fb2/
  *****************************************************************************/
 #if CONFIG_FTLCDC200_NR_FB > 1
-static ssize_t ftlcdc200_show_pos(struct device *device,
+static ssize_t ftlcdc200_show_pos(struct device *dev,
 		struct device_attribute *attr, char *buf)
 {
-	struct fb_info *info = dev_get_drvdata(device);
+	struct fb_info *info = dev_get_drvdata(dev);
 	struct ftlcdc200fb *ftlcdc200fb = info->par;
 	struct ftlcdc200 *ftlcdc200 = ftlcdc200fb->ftlcdc200;
 	unsigned int x, y;
 
-	dev_dbg(ftlcdc200->dev, "fb%d: %s\n", info->node, __func__);
+	dev_dbg(dev, "fb%d: %s\n", info->node, __func__);
 	ftlcdc200fb->get_position(ftlcdc200, &x, &y);
 
 	return snprintf(buf, PAGE_SIZE, "%d,%d\n", x, y);
 }
 
-static ssize_t ftlcdc200_store_pos(struct device *device,
+static ssize_t ftlcdc200_store_pos(struct device *dev,
 		struct device_attribute *attr, const char *buf, size_t count)
 {
-	struct fb_info *info = dev_get_drvdata(device);
+	struct fb_info *info = dev_get_drvdata(dev);
 	struct ftlcdc200fb *ftlcdc200fb = info->par;
 	struct ftlcdc200 *ftlcdc200 = ftlcdc200fb->ftlcdc200;
 	char *last = NULL;
 	unsigned int x, y;
 
-	dev_dbg(ftlcdc200->dev, "fb%d: %s\n", info->node, __func__);
+	dev_dbg(dev, "fb%d: %s\n", info->node, __func__);
 
 	x = simple_strtoul(buf, &last, 0);
 	last++;
@@ -1962,8 +1991,7 @@ static int __devinit ftlcdc200_alloc_ftlcdc200fb(struct ftlcdc200 *ftlcdc200, in
 err_sysfs2:
 #endif
 	for (i = 0; ARRAY_SIZE(ftlcdc200_fb_device_attrs); i++)
-		device_remove_file(info->dev,
-			&ftlcdc200_fb_device_attrs[i]);
+		device_remove_file(info->dev, &ftlcdc200_fb_device_attrs[i]);
 err_sysfs1:
 	unregister_framebuffer(info);
 err_register_info:
@@ -2019,13 +2047,12 @@ static void ftlcdc200_free_ftlcdc200fb(struct ftlcdc200fb *ftlcdc200fb, int nr)
 
 #if CONFIG_FTLCDC200_NR_FB > 3
 	for (i = 0; i < ARRAY_SIZE(ftlcdc200_fb_device_attrs); i++)
-		device_remove_file(info->dev,
-			&ftlcdc200_fb_device_attrs[i]);
+		device_remove_file(info->dev, &ftlcdc200_fb_device_attrs[i]);
 #endif
 
 	unregister_framebuffer(info);
 	dma_free_writecombine(dev, info->fix.smem_len, info->screen_base,
-				(dma_addr_t )info->fix.smem_start);
+		(dma_addr_t )info->fix.smem_start);
 
 	fb_dealloc_cmap(&info->cmap);
 	framebuffer_release(info);
@@ -2257,8 +2284,7 @@ static int __devexit ftlcdc200_remove(struct platform_device *pdev)
 
 #if CONFIG_FTLCDC200_NR_FB > 1
 	for (i = 0; i < ARRAY_SIZE(ftlcdc200_device_attrs); i++)
-		device_remove_file(ftlcdc200->dev,
-			&ftlcdc200_device_attrs[i]);
+		device_remove_file(ftlcdc200->dev, &ftlcdc200_device_attrs[i]);
 #endif
 
 	free_irq(ftlcdc200->irq_vs, ftlcdc200);
