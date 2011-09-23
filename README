@@ -104,11 +104,11 @@ the image comes from fb0
 
 * you can access the device file to paste an image to framebuffer
 
-$ cp image_file /dev/fb0
+$ cat image_file > /dev/fb0
 
 * clear the screen by copying zero to the device file
 
-$ cp /dev/zero /dev/fb0
+$ cat /dev/zero > /dev/fb0
 
 you can see the usable options in /sys/class/graphics/fb0/
 
