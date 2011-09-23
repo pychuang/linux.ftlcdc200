@@ -626,7 +626,7 @@ static irqreturn_t ftlcdc200_interrupt(int irq, void *dev_id)
 }
 
 /******************************************************************************
- * struct platform_driver functions
+ * struct fb_ops functions
  *****************************************************************************/
 /**
  * fb_check_var - Validates a var passed in.
