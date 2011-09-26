@@ -145,7 +145,7 @@ $ fbset -fb /dev/fb1 -g 80 80 80 160 16
 /sys/devices/platform/ftlcdc200.0/blend1 and
 /sys/devices/platform/ftlcdc200.0/blend2 are the alpha blending levels
 
-the valid number is the between 0 and 16
+the valid number is between 0 and 16
 
 * when the pixel covers background, image1, and image2
 
@@ -175,7 +175,7 @@ $ cat /sys/class/graphics/fb1/position
 $ echo 100,40 > /sys/class/graphics/fb1/position
 
 ******************************************************************************
-POP (Picture on Picture) HOWTO:
+POP (Picture out Picture) HOWTO:
 
 (1) enable/disable pop
 
@@ -233,5 +233,5 @@ $ cat /sys/devices/platform/ftlcdc200.0/zoom
 
 * change the setting (e.g. enable zoom)
 
-echo 1 > /sys/devices/platform/ftlcdc200.0/zoom
+$ echo 1 > /sys/devices/platform/ftlcdc200.0/zoom
 
